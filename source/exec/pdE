@@ -1,0 +1,41 @@
+#!/bin/sh
+
+CMRUNDIR='/u/cmrun'
+if [ -f $HOME/.modelErc ]; then . $HOME/.modelErc; fi
+
+if [ $# -lt 2 ] || [ ! -d $CMRUNDIR/$1 ] ; then
+    echo "Usage: pdE runID acc_files (list all; deflt path:$PWD)"
+    exit
+fi
+
+runID=$1 ; shift
+RUNDIR=$CMRUNDIR/$runID
+
+if [ $# -eq 1 ] ; then
+  echo "processing $*"
+else
+  echo "The following $# files are added up:"
+  for x in $* ; do echo $x ; done
+fi
+
+if [ ! -s Ipd ] ; then
+# set up a default file
+cat <<EOF > Ipd
+
+
+ &&PARAMETERS
+
+ &&END_PARAMETERS
+
+ &INPUTZ
+ ISTART=-1,QDIAG=.true.,KDIAG=12*0,
+ &END
+EOF
+fi
+
+rm -f error_message
+do_uln=0 ; if [ ! -L TOPO ] ; then $RUNDIR/${runID}ln ; do_uln=1 ; fi
+$RUNDIR/${runID}.exe $* < Ipd > pd.PRT
+   if [ ${do_uln} -eq 1 ] ; then $RUNDIR/${runID}uln ; fi
+if [ -s error_message ] ; then cat error_message ; fi
+if [ $# -gt 1 ] ; then tail -2 pd.PRT ; fi
