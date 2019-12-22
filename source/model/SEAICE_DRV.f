@@ -699,6 +699,11 @@ C**** Save sea ice tracer amount
         end if
       end do
 #endif
+      if (TSIL(1).lt.-100.) then
+         write(6,*) "Seaice: T < -100. i,j,TSI = ",i,j,TSIL(1:LMI)
+         call stop_model("Seaice too cold after ADDICE",255)
+      end if
+
       END IF
       END DO
       END DO

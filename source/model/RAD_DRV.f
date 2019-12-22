@@ -531,7 +531,7 @@ C     OUTPUT DATA
      *     ,ij_clr_srincg,ij_CLDTPT,ij_cldt1t,ij_cldt1p,ij_cldcv1
      *     ,ij_wtrcld,ij_icecld,ij_optdw,ij_optdi
      *     ,AFLX_ST
-      USE DYNAMICS, only : pk,pedn,plij,pmid,pdsig,ltropo,am,byam
+      USE DYNAMICS, only : pk,pedn,plij,pmid,pdsig,ltropo,am
       USE SEAICE, only : rhos,ace1i,rhoi
       USE SEAICE_COM, only : rsi,snowi,pond_melt,msi,flag_dsws
       USE GHYCOM, only : snowe_com=>snowe,snoage,wearth_com=>wearth
@@ -1278,7 +1278,7 @@ C**** read headers/latitudes
       read(iu,'(a)') title
       write(6,'(1x,a100)') title
       read(iu,'(a)') title
-      write(6,'(1x,a100)') title
+c      write(6,'(1x,a100)') title
       read(title(10:100),*) (xlat(j),j=1,jma)
 
 C**** read heights z(km) and data (kg/km^3/year)
@@ -1287,7 +1287,7 @@ C**** read heights z(km) and data (kg/km^3/year)
         write(6,'(1x,a100)') title
         do l=lma,1,-1
           read(iu,'(a)') title
-          write(6,'(1x,a100)') title
+c          write(6,'(1x,a100)') title
           read(title,*) z(l),(H2O(j,l),j=1,jma)
         end do
         do j=1,jma
@@ -1783,7 +1783,7 @@ C****
 
       integer :: year1,year2,year_old=-1, iu, i,j,k
       real*8 vdata0(im,jm,11),crop1(im,jm),crop2(im,jm)  ! to limit i/o
-      save    year1,year2,year_old,vdata0,crop1,crop2    ! to limit i/o
+      save   year1,year2,year_old,vdata0,crop1,crop2,iu  ! to limit i/o
 
       character*80 title
       real*4 crop4(im,jm)

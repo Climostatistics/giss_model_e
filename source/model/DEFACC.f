@@ -366,7 +366,7 @@ c
       lname_j(k) = 'WATER DERIVED FROM CH4 OXIDATION IN STRATOSPHERE'
       units_j(k) = '10^6 mm/day'
       stitle_j(k)= ' H2O BY CH4(x1M)'
-      scale_j(k) = 1d6
+      scale_j(k) = 2d6
       ia_j(k) = ia_12hr
 c
       k=k+1

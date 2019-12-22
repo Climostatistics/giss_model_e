@@ -570,10 +570,11 @@ c      USE ICEGEOM, only : dxyp,dyp,dxp,dxv,bydxyp ?????
 #else
       INTEGER, PARAMETER :: NTRICE=2+(2+NTM)*LMI
       INTEGER ITR
+      REAL*8 TRSNOW(NTM), TRICE(NTM)
 #endif
       REAL*8 FMSI(NTRICE,IM),SFMSI(NTRICE),AMSI(NTRICE),BYFOA(IM,JM)
       INTEGER I,J,L,IM1,IP1,K
-      REAL*8 SFASI,DMHSI,ASI,YRSI,XRSI,FRSI
+      REAL*8 SFASI,DMHSI,ASI,YRSI,XRSI,FRSI,SICE
 !@var MHS mass/heat/salt content of sea ice
       REAL*8, DIMENSION(NTRICE,IM,JM) :: MHS
 C****
@@ -615,13 +616,30 @@ C**** Currently this is on atmospheric grid
       DO L=1,LMI
         MHS(L+2,:,:) = HSI(L,:,:)
         MHS(L+2+LMI,:,:) = SSI(L,:,:)
+      END DO
 #ifdef TRACERS_WATER
 C**** add tracers to advected arrays
-        DO ITR=1,NTM
-          MHS(L+2+(1+ITR)*LMI,:,:)=TRSI(ITR,L,:,:)
+      DO J=1,JM
+        DO I=1,IM
+          DO ITR=1,NTM
+          IF (SNOWI(I,J)*XSI(2).gt.XSI(1)*ACE1I) THEN ! first layer is all snow
+            SICE=SSI(1,I,J)+SSI(2,I,J)
+            TRSNOW(ITR) = TRSI(ITR,1,I,J) + TRSI(ITR,2,I,J)*MAX(1.
+     *           -(ACE1I-SICE)/(XSI(2)*(ACE1I+SNOWI(I,J))-SICE),0d0)
+          ELSE                  ! first layer is snow and some ice
+            TRSNOW(ITR) = TRSI(ITR,1,I,J)*MIN(SNOWI(I,J)/(XSI(1)*(ACE1I
+     *           +SNOWI(I,J))-SSI(1,I,J)),1d0)
+          END IF
+          TRICE(ITR) = TRSI(ITR,1,I,J) + TRSI(ITR,2,I,J) - TRSNOW(ITR)
+          MHS(1+2+(1+ITR)*LMI,I,J)=TRSNOW(ITR)
+          MHS(2+2+(1+ITR)*LMI,I,J)=TRICE(ITR)
+          DO L=3,LMI
+            MHS(L+2+(1+ITR)*LMI,:,:)=TRSI(ITR,L,:,:)
+          END DO
+          END DO
         END DO
-#endif
       END DO
+#endif
 C**** define inverse area array
       DO J=1,JM
       DO I=1,IM
@@ -975,13 +993,36 @@ C**** sea ice prognostic variables
             MSI(I,J)  = MHS(2,I,J)
             DO L=1,LMI
               HSI(L,I,J) = MHS(L+2,I,J)
-              SSI(L,I,J) = MHS(L+2+LMI,I,J)
+            END DO
+C**** ensure that salinity is only associated with ice
+            SICE=MHS(1+2+LMI,I,J)+MHS(2+2+LMI,I,J)
+            IF (SNOWI(I,J).gt.XSI(2)*(ACE1I+SNOWI(I,J))) THEN
+               SSI(1,I,J)=0.
+            ELSE
+               SSI(1,I,J)=SICE*(XSI(1)*ACE1I-XSI(2)*SNOWI(I,J))/ACE1I
+            END IF
+            SSI(2,I,J)=SICE-SSI(1,I,J)
+            DO L=3,LMI
+               SSI(L,I,J) = MHS(L+2+LMI,I,J)
+            END DO
 #ifdef TRACERS_WATER
-              DO ITR=1,NTM
+C**** reconstruct tracer arrays
+            DO ITR=1,NTM
+              IF (ACE1I.gt.XSI(2)*(SNOWI(I,J)+ACE1I)) THEN
+                TRSI(ITR,1,I,J)= MHS(2+2+(1+ITR)*LMI,I,J) *(ACE1I
+     *               -XSI(2)*(SNOWI(I,J)+ACE1I))/ACE1I +MHS(1+2+(1+ITR)
+     *               *LMI,I,J)
+              ELSE
+                TRSI(ITR,1,I,J)= MHS(1+2+(1+ITR)*LMI,I,J)*XSI(1)*(ACE1I
+     *               +SNOWI(I,J))/SNOWI(I,J)
+              END IF
+              TRSI(ITR,2,I,J)= MHS(1+2+(1+ITR)*LMI,I,J)+MHS(2+2+(1+ITR)
+     *             *LMI,I,J)-TRSI(ITR,1,I,J)
+              DO L=3,LMI
                 TRSI(ITR,L,I,J)=MHS(L+2+(1+ITR)*LMI,I,J)
               END DO
-#endif
             END DO
+#endif
             FWSIM(I,J)=RSI(I,J)*(ACE1I+SNOWI(I,J)+MSI(I,J)-
      *           SUM(SSI(1:LMI,I,J)))
           END DO

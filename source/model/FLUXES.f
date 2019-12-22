@@ -134,8 +134,10 @@ C**** sea ice melt and iceberg/glacial melt.
       REAL*8, DIMENSION(NTM,IM,JM) :: TRFLOWO
 !@var TRMELTI tracer from simelt into ocean (kg)
       REAL*8, DIMENSION(NTM,IM,JM) :: TRMELTI
+#ifdef TRACERS_OCEAN
 !@var TRGMELT tracer from glacial melt into ocean (kg)
       REAL*8, DIMENSION(NTM,IM,JM) :: TRGMELT
+#endif
 !@var ftrsi_io ice-ocean tracer fluxes under ice (kg/m^2)
       REAL*8, DIMENSION(NTM,IM,JM) :: ftrsi_io
 #endif

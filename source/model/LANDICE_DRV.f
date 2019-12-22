@@ -18,7 +18,11 @@
 #endif
       USE FLUXES, only : gtemp,gmelt,egmelt
 #ifdef TRACERS_WATER
-     *     ,gtracer,trgmelt
+     *     ,gtracer
+#ifdef TRACERS_OCEAN
+     *     ,trgmelt
+      USE TRACER_COM, only : trglac
+#endif
 #endif
       USE DAGCOM, only : npts,icon_MLI,icon_HLI,title_con,conpt0
       USE PARAM
@@ -101,7 +105,7 @@ C**** Antarctica
      *           .IMU2) THEN
               GMELT(I,J)  =  ACCPCA   ! kg 
               EGMELT(I,J) = -LHM*ACCPCA  ! J
-#ifdef TRACERS_WATER
+#ifdef TRACERS_OCEAN
               TRGMELT(:,I,J)= trglac(:)*ACCPCA  ! kg
 #endif
               NOC=NOC+1
@@ -125,7 +129,7 @@ C**** Greenland
         IF (FOCEAN(I,J).gt.0) NOC=NOC+1
         GMELT(I,J)  =  ACCPCG
         EGMELT(I,J) = -LHM*ACCPCG
-#ifdef TRACERS_WATER
+#ifdef TRACERS_OCEAN
         TRGMELT(:,I,J) = trglac(:)*ACCPCG
 #endif
       END DO
@@ -136,7 +140,7 @@ C**** Greenland
       END IF
       else
         GMELT = 0. ; EGMELT = 0.
-#ifdef TRACERS_WATER
+#ifdef TRACERS_OCEAN
         TRGMELT = 0.
 #endif
       end if

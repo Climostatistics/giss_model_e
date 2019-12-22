@@ -3413,7 +3413,7 @@ C****
      *     ,trmo
 #endif
       USE FLUXES, only : gmelt,egmelt
-#ifdef TRACERS_WATER
+#ifdef TRACERS_OCEAN
      *     ,trgmelt
 #endif
       IMPLICIT NONE
