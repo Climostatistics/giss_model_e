@@ -1163,7 +1163,7 @@ C**** Initialise some modules before finalising Land/Ocean/Lake/LI mask
 C**** Initialize ice
       CALL init_ice(iniOCEAN)
 C**** Initialize lake variables (including river directions)
-      CALL init_LAKES(inilake)
+      CALL init_LAKES(inilake,istart)
 C**** Initialize ocean variables
 C****  KOCEAN = 1 => ocean heat transports/max. mixed layer depths
 C****  KOCEAN = 0 => RSI/MSI factor

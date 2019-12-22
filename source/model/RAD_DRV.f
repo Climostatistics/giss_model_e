@@ -686,8 +686,8 @@ C****
       ICKERR=0
       JCKERR=0
 !$OMP  PARALLEL PRIVATE(CSS,CMC,CLDCV, DEPTH,OPTDW,OPTDI, ELHX,
-!$OMP*   I,INCH,IH,IT, J, K,KR, L,LR,icc1, OPNSKY, CSZ2,
-!$OMP*   PLAND,PIJ, QSS, TOTCLD,TAUSSL,TAUMCL)
+!$OMP*   I,INCH,IH,IT, J, K,KR, L,LR,icc1, OPNSKY, CSZ2, PLAND,
+!$OMP*   PIJ, QSS, TOTCLD,TAUSSL,TAUMCL,tauup,taudn,taucl,wtlin)
 !$OMP*   COPYIN(/RADCOM_hybrid/)
 !$OMP*   SHARED(ITWRITE)
 !$OMP    DO SCHEDULE(DYNAMIC,2)
@@ -1774,7 +1774,7 @@ C****
 !@auth R. Ruedy
 !@ver  1.0
       USE FILEMANAGER
-      USE MODEL_COM, only : im,jm,vdata      
+      USE MODEL_COM, only : im,jm,vdata
       USE GEOM, only : imaxj
       implicit none
       integer, intent(in) :: year

@@ -210,7 +210,7 @@ c  internals:
       real*8 :: bgrid,an2,as2,dudz,dvdz,tau
       real*8, parameter ::  tol=2d-3,w=.5d0
       integer, parameter ::  itmax=50
-      integer, parameter :: iprint=0,jprint=41  ! set iprint>0 to debug
+      integer, parameter :: iprint= 0,jprint=44  ! set iprint>0 to debug
       real*8, dimension(n) :: z,dz,xi,usave,vsave,tsave,qsave
      *       ,usave1,vsave1,tsave1,qsave1             
       real*8, dimension(n-1) :: lscale,zhat,dzh,xihat,km,kh,kq,ke,gm,gh
@@ -490,20 +490,20 @@ c     To compute the drag coefficient,Stanton number and Dalton number
       real*8 l0,l1,an2,dudz,dvdz,as2,lmax,lmax2
 
       l0=.16d0*dbl ! Moeng and Sullivan 1994
-c     if (l0.lt.zhat(1)) l0=zhat(1)
+      if (l0.lt.zhat(1)) l0=zhat(1)
 
-c     l1=kappa*zhat(1)
-c     lscale(1)=l0*l1/(l0+l1)
+      l1=kappa*zhat(1)
+      lscale(1)=l0*l1/(l0+l1)
 
-c     do i=2,n-1
-      do i=1,n-1
+      do i=2,n-1
+c     do i=1,n-1
         l1=kappa*zhat(i)
         lscale(i)=l0*l1/(l0+l1)
-c       if (t(i+1).gt.t(i)) then
-c         an2=2.*grav*(t(i+1)-t(i))/((t(i+1)+t(i))*dzh(i))
-c         lmax  =0.53d0*sqrt(2.*e(i)/max(an2,teeny))
-c         if (lscale(i).gt.lmax) lscale(i)=lmax
-c       endif
+        if (t(i+1).gt.t(i)) then
+          an2=2.*grav*(t(i+1)-t(i))/((t(i+1)+t(i))*dzh(i))
+          lmax  =0.53d0*sqrt(2.*e(i)/max(an2,teeny))
+          if (lscale(i).gt.lmax) lscale(i)=lmax
+        endif
 c       if (lscale(i).lt.0.5*kappa*zhat(i)) lscale(i)=0.5*kappa*zhat(i)
       end do
 
@@ -983,7 +983,7 @@ c     at edge: e,lscale,km,kh,gm,gh
         gh=tau*tau*an2
         gm=tau*tau*as2
         if(gh.lt.ghmin) gh=ghmin
-        ! if(gh.gt.ghmax) gh=ghmax
+        if(gh.gt.ghmax) gh=ghmax
         gmmax=(1+d1*gh+d3*gh*gh)/(d2+d4*gh)
         if(gm.gt.gmmax) gm=gmmax
         den=1+d1*gh+d2*gm+d3*gh*gh+d4*gh*gm+d5*gm*gm
@@ -1706,7 +1706,7 @@ c       rhs1(i)=-coriol*(u(i)-ug)
      *     ,wstar3fac,wstar3,wstar2h,usurfq,usurfh
       integer, save :: iter_count=0
       integer, parameter ::  itmax=100
-      integer, parameter ::  iprint=0,jprint=41 ! set iprint>0 to debug
+      integer, parameter ::  iprint= 0,jprint=44 ! set iprint>0 to debug
       real*8, parameter ::  tol=2d-3,w=.5d0
       integer :: i,j,iter,ierr  !@var i,j,iter loop variable
 

@@ -156,14 +156,14 @@ This is stored through the CVS revision control system, and copies can
 be checked-out to your home directory using the following commands:</p>
 <tt>
    export CVSROOT=/u/cmrun/cvs/repository<br>
-   cvs checkout -r modelE-2-3-1 modelE<br>
+   cvs checkout -r modelE-2-3-2 modelE<br>
    cd modelE<br>
    cvs tag -b your_tag_here<br>
    cvs update -r your_tag_here<br>
 </tt>
 
 <p>This will create a directory modelE/ in your directory. The code
-will correspond to modelE-2-3-1. Please check to see if this is the
+will correspond to modelE-2-3-2. Please check to see if this is the
 latest release. It will be tagged with your own tag name so that your
 developments can be maintained by CVS, without conflicting with the
 main development branch.</P>
@@ -535,17 +535,20 @@ U00ice/HRMAX)</b></a></p>
        it is in RADIATIVE BALANCE, i.e. that the net flux of energy into
        the ocean (which has no effect, since ocean data are specified)
        is zero if averaged over a whole year. One way to roughly achieve
-       this goal is to pick the right values for U00ice/HRMAX. These parameters
-       influence the cloud formation where the temperature is below 0C
-       and the cloud formation in the boundary layer respectively, and
-       can therefore be used to change the radiative balance.</p>
+       this goal is to pick the right values for
+       U00ice/U00wtrX/HRMAX. These parameters influence the cloud
+       formation where the temperature is below/above 0C and the cloud
+       formation in the boundary layer respectively, and can therefore be
+       used to change the radiative balance.</p>
 
 <p>    Run the model for a year and find the annual mean net heating at
        the ground (GLOBAL: NET HEAT AT Z0, or OCEAN: NET HEAT Z0+RVR
        budget pages). That quantity may change from year to year within
-       .5 W/m<sup>2</sup>. Increasing U00ice by .01 increases the cloud 
-       cover and planetary albedo. HRMAX can vary between 200 and 1000 m.
-       Increasing HRMAX increases the cloud cover in th boundary layer 
+       .5 W/m<sup>2</sup>. Increasing U00ice by .01 decreases the cloud 
+       cover and planetary albedo. Increasing U00wtrX to be larger
+       than 1 reduces cloud cover in the low latitudes. 
+       HRMAX can vary between 200 and 1000 m.
+       Increasing HRMAX increases the cloud cover in the boundary layer 
        which has a warming effect. Rerun that year with the new values 
        and hope that the annual mean net heating at the ground averages 
        out to less than .3 W/m<sup>2</sup> in absolute value over the next

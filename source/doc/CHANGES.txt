@@ -1,3 +1,36 @@
+Major changes from version modelE-2-1 to modelE-2-3
+===================================================
+
+- Glacial melt (icebergs) now available as input into ocean
+
+- time varying crop fraction possible
+
+- monthly files for the CH4 oxidation into stratosphere
+
+- Further extensions to sub-daily diagnostics to cover all
+  geopotential heights, temperatures and velocities, and tropopause
+  height
+
+- New scoring statistic for comparsion to observations
+
+- Tested versions at 2x2.5 and 8x10 horizontal resolutions
+
+- More options in stratospheric drag formulation.
+
+- snowice formation now an option 
+
+- zenith angle dependence for all snow/ice albedos
+
+- New ISCCP cloud optical depth/height histograms diagnostics.
+
+- water tracer code in soils
+
+- orbital parameter calculations based on paleo-year
+
+- surface velocities (ice, ocean) no used as input into surface
+  boundary conditions.
+
+
 Major changes from version modelE-2-0-1 to modelE-2-1
 =====================================================
 

@@ -21,11 +21,12 @@ ice dynamics arrays (imic,jmic), should not need to be changed.
 
 1) Routines that MUST be part of any ocean code:
 
-init_OCEAN(iniOCEAN)  [ ALSO init_icedyn(iniOCEAN) ]
+init_OCEAN(iniOCEAN,istart)  [ ALSO init_icedyn(iniOCEAN) ]
  
   Routine used to initialise ocean arrays. iniOCEAN is true if ocean
-  initial conditions are not read in from a restart file in INPUT.
-  init_icedyn works using the same flag as for the ocean.
+  initial conditions are not read in from a restart file in
+  INPUT. ISTART determines what kind of start is required. init_icedyn
+  works using the same flag as for the ocean.
 
 io_ocean(kunit,iaction,ioerr)  [ ALSO io_icedyn ]
 
@@ -118,16 +119,16 @@ MLHC(I,J) : Mixed layer heat capacity (J/m^2 C) on the atmospheric
 
 OGEOZA (ocean geopotential height) (m^2/s^2)
   The sea surface height field is required for computing the ice
-  dynamics. If a rigid lid is being used, an assumption of geostrophy
-  can be used instead to estimate the field. This is the height of the 
-  ocean without considering any displacement due to sea ice.
+  dynamics. This is the height of the ocean without considering any
+  displacement due to sea ice. If you prefer to use geostrophy to 
+  estimate the sea surface height field, set "osurf_tilt=0" in the rundeck. 
 
 UOSURF(I,J), VOSURF(I,J): (ocean surface currents) (m/s)
   The sea surface velocities are required in the ice dynamics, and 
-  optionally in the atmosphere-ocean surface stress calculation. As
-  a first step, these velocities are on the atmospheric C-grid. If
-  higher resolution ice dynamics are required, the grid for these will
-  change (but so will the ICEDYN_DRV.f code).
+  optionally ("UOdrag=1") in the atmosphere-ocean surface stress 
+  calculation. As a first step, these velocities are on the atmospheric 
+  C-grid. If higher resolution ice dynamics are required, the grid for 
+  these will change (but so will the ICEDYN_DRV.f code).
 
 ======================================================================
 
@@ -163,6 +164,15 @@ MELTI, EMELTI, SMELTI mass (kg), heat (J) and salt (kg) of melted ice
       when sea ice extent is changed, and therefore is applied over
       the whole box (not just the ice covered portion).
 
+GMELT, EGMELT glacial runoff (kg), energy of glacial runoff (J) from 
+      icebergs. This is sepearated from river runoff, since it comes
+      into the ocean as ice, and can optionally be distributed over a 
+      significant depth (say 400m) to mimic iceberg melt
+      profiles. Currently, these fluxes are constant, and based on IPCC
+      estimates of mass balance in Antartica and Greenland. The
+      database parameter 'glmelt_on' must be set to 1 in the rundeck to 
+      set these fluxes.
+
 DMUA, DMVA N-S and E-W components of the atmospheric wind stress (kg/ms). 
       Note that these are on the atmospheric tracer grid, and are the
       stresses to be applied over the whole box (i.e. they are already
@@ -196,7 +206,8 @@ flux (note that TRPREC is the exception).
 
 Input:	TRPREC(NTM,IM,JM) (kg), TREVAPOR(NTM,NSTYPE,IM,JM) (kg/m^2),
 	TRUNPSI(NTM,IM,JM) (kg/m^2), TRUNOSI(NTM,IM,JM) (kg/m^2),
-	TRFLOWO(NTM,IM,JM) (kg), TRMELTI(NTM,IM,JM) (kg)
+	TRFLOWO(NTM,IM,JM) (kg), TRMELTI(NTM,IM,JM) (kg), 
+	TRGMELT(NTM,IM,JM) (kg)
 
 Output: DTRSI(NTM,IM,JM,2) (kg/m^2) tracer amount in formed ice
 

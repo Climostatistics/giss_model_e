@@ -305,7 +305,11 @@ ccc tracers variables
         ! flux in
         trpr(nx)=(trprec(n,i,j)*bydxyp(j))/dtsrc ! kg/m^2 s
         ! concentration of tracers in atm. water at the surface
-        tr_surf(nx) = trm(i,j,1,n)*bydxyp(j)*rhow/qm1 ! kg/m^3
+        if (qm1.gt.0) then  ! avoid very rare error
+          tr_surf(nx) = trm(i,j,1,n)*bydxyp(j)*rhow/qm1 ! kg/m^3
+        else
+          tr_surf(nx) = 0.
+        end if
       enddo
 #endif
       tg1 = tearth(i,j)

@@ -93,7 +93,8 @@ C**** latitudinal spacing depends on whether you have even spacing or
 C**** a partial box at the pole
       DLAT_DG=180./JM                     ! even spacing (default)
       IF (JM.eq.46) DLAT_DG=180./(JM-1)   ! 1/2 box at pole for 4x5
-cc    IF (JM.eq.24) DLAT_DG=180./(JM-1.5) ! 1/4 box at pole, 'real' 8x10
+cc    IF (JM.eq.24) DLAT_DG=180./(JM-1)   ! 1/2 box at pole, orig 8x10
+      IF (JM.eq.24) DLAT_DG=180./(JM-1.5) ! 1/4 box at pole, 'real' 8x10
       DLAT=DLAT_DG*radian
       LAT(1)  = -.25*TWOPI
       LAT(JM) = -LAT(1)

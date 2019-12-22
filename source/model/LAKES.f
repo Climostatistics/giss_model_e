@@ -351,7 +351,7 @@ C****
 
       END MODULE LAKES
 
-      SUBROUTINE init_LAKES(inilake)
+      SUBROUTINE init_LAKES(inilake,istart)
 !@sum  init_LAKES initiallises lake variables
 !@auth Gary Russell/Gavin Schmidt
 !@ver  1.0
@@ -372,7 +372,8 @@ C****
       USE DAGCOM, only : npts,icon_LKM,icon_LKE,title_con,conpt0
       IMPLICIT NONE
 
-      LOGICAL inilake
+      LOGICAL, INTENT(IN) :: inilake
+      INTEGER, INTENT(IN) :: ISTART
 !@var I,J,I72,IU,JU,ID,JD loop variables
       INTEGER I,J,I72,IU,JU,ID,JD,INM,KD
       INTEGER iu_RVR  !@var iu_RVR unit number for river direction file
@@ -449,6 +450,7 @@ C**** TANLK=TAN(ALPHA) = R/H for a conical lake of equivalent volume
 
       CALL PRINTLK("IN")
 C**** Set GTEMP arrays for lakes
+      IF (ISTART.gt.0) THEN
       DO J=1,JM
         DO I=1,IM
           IF (FLAKE(I,J).gt.0) THEN
@@ -469,7 +471,7 @@ C**** Set GTEMP arrays for lakes
           END IF
         END DO
       END DO
-
+      END IF
 C****
 C**** Always initiallise River direction and Rate
 C**** Read in CDIREC: Number = octant direction, Letter = river mouth

@@ -21,6 +21,8 @@
       REAL*8, PARAMETER :: ACE2LI = Z2LI*RHOI
 !@var HC2LI heat capacity of second layer land ice (J/m^2)
       REAL*8, PARAMETER :: HC2LI = ACE2LI*SHI
+!@dbparam glmelt_on determines whether glacial melt is used for oceans
+      INTEGER :: glmelt_on = 0   ! default is 'off'
 
       CONTAINS
 

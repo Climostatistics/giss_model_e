@@ -9,20 +9,34 @@
 !@sum  init_ice initialises landice arrays
 !@auth Original Development Team
 !@ver  1.0
-      USE MODEL_COM, only : im,jm,flice
-      USE LANDICE, only: ace1li,ace2li
+      USE CONSTANT, only : edpery,sday,lhm
+      USE MODEL_COM, only : im,jm,flice,focean,dtsrc
+      USE LANDICE, only: ace1li,ace2li,glmelt_on
       USE LANDICE_COM, only : tlandi,snowli
 #ifdef TRACERS_WATER
      *     ,trsnowli,trlndi,trli0
 #endif
-      USE FLUXES, only : gtemp
+      USE FLUXES, only : gtemp,gmelt,egmelt
 #ifdef TRACERS_WATER
-     *     ,gtracer
+     *     ,gtracer,trgmelt
 #endif
       USE DAGCOM, only : npts,icon_MLI,icon_HLI,title_con,conpt0
+      USE PARAM
       IMPLICIT NONE
       LOGICAL :: QCON(NPTS), T=.TRUE. , F=.FALSE.
-      INTEGER I,J
+C**** The net accumulation from IPCC2 report is 2016x10**12 kg/year
+C**** for Antarctica and for Greenland it is 316x10**12 kg/year
+C****
+!@var ACCPDA total accumulation per year for Antarctica (kg/yr)
+!@var ACCPDG total accumulation per year for Greenland (kg/yr)
+      REAL*8, PARAMETER :: ACCPDA = 2016d12, ACCPDG = 316d12
+
+      INTEGER, PARAMETER :: NBOXMAX=18
+      INTEGER IFW(NBOXMAX),JFW(NBOXMAX)
+      INTEGER :: JML, JMU, IML1, IMU1, IML2, IMU2, NBOX, NGRID
+      REAL*8 ACCPCA,ACCPCG
+      LOGICAL :: do_glmelt
+      INTEGER I,J,N,NOC
 
 C**** set GTEMP array for landice
       DO J=1,JM
@@ -39,6 +53,93 @@ C**** set GTEMP array for landice
           END IF
         END DO
       END DO
+
+C**** Calculate (fixed) iceberg melt terms from Antarctica and Greenland
+      call sync_param("glmelt_on",glmelt_on)
+
+C**** Note these parameters are highly resolution dependent!
+C**** Around Antarctica, fresh water is added from 78S to 62S 
+C**** and from 0-60W and 135W to 165E
+C**** Around Greenland the freshwater is added to both the east and
+C**** west coasts in the one grid box closest to the coast which is
+C**** determined by the direction in the river flow file.
+C**** This information could be read in from a file.
+      IF (JM.eq.46) THEN        ! 4x5
+        JML=4 ; JMU=8 ; IML1=24 ; IMU1=36  
+        IML2=69 ; IMU2=11 ; NBOX=10 ; NGRID=111
+        IFW(1:NBOX) = (/26,25,25,25,29,29,30,31,32,33/)
+        JFW(1:NBOX) = (/39,40,41,42,39,40,40,40,41,42/)
+        do_glmelt=.true.
+      ELSEIF (JM.eq.90) THEN    ! 2x2.5
+        JML=7 ; JMU=11 ; IML1=48 ; IMU1=69 
+        IML2=136 ; IMU2=18 ; NBOX=18 ; NGRID=196
+        IFW(1:NBOX) = (/50,50,51,51,51,52,53,56,56,57,58,59,60,61,62,63
+     *       ,64,64/)
+        JFW(1:NBOX) = (/82,81,80,79,78,77,76,76,77,78,78,78,79,79,79,80
+     *       ,81,82/)
+        do_glmelt=.true.
+      ELSEIF (JM.eq.24) THEN    ! 8x10 (do nothing)
+        do_glmelt=.false.
+      ELSE  ! unknown resolution
+        WRITE(*,*) "Glacial Melt flux: unknown resolution JM=",JM 
+        WRITE(*,*) "Please edit init_LI if glacial melt is required."
+        do_glmelt=.false.
+      END IF
+
+      if (do_glmelt .and. glmelt_on.eq.1) then
+C****  Note that water goes in with as if it is ice at 0 deg.
+C****  Possibly this should be a function of in-situ freezing temp?
+C****
+C**** Antarctica
+! accumulation (kg per source time step) per water column
+      ACCPCA = ACCPDA*DTsrc/(EDPERY*SDAY*FLOAT(NGRID))
+      NOC=0
+      DO J=JML,JMU
+        DO I=1,IM
+          IF (FOCEAN(I,J).GT.0.) THEN
+            IF ((I.GE.IML1.AND.I.LE.IMU1) .or. I.GE.IML2 .or. I.LE
+     *           .IMU2) THEN
+              GMELT(I,J)  =  ACCPCA   ! kg 
+              EGMELT(I,J) = -LHM*ACCPCA  ! J
+#ifdef TRACERS_WATER
+              TRGMELT(:,I,J)= trglac(:)*ACCPCA  ! kg
+#endif
+              NOC=NOC+1
+            END IF
+          END IF
+        END DO
+      END DO
+      IF (NOC.ne.NGRID) THEN
+        WRITE(*,*) "Landmask has changed: Please correct NGRID to ",NOC,
+     *      " in init_LI"
+        call stop_model("init_LI: Landmask error 1",255)
+      END IF
+
+C**** Greenland
+! accumulation (kg per source time step) per water column
+      ACCPCG = ACCPDG*DTsrc/(EDPERY*SDAY*FLOAT(NBOX)) 
+      NOC=0
+      DO N=1,NBOX
+        I=IFW(N)
+        J=JFW(N)
+        IF (FOCEAN(I,J).gt.0) NOC=NOC+1
+        GMELT(I,J)  =  ACCPCG
+        EGMELT(I,J) = -LHM*ACCPCG
+#ifdef TRACERS_WATER
+        TRGMELT(:,I,J) = trglac(:)*ACCPCG
+#endif
+      END DO
+      IF (NOC.ne.NBOX) THEN
+        WRITE(*,*) "Landmask has changed: Please correct NBOX to ",NOC,
+     *      " in init_LI"
+        call stop_model("init_LI: Landmask error 2",255)
+      END IF
+      else
+        GMELT = 0. ; EGMELT = 0.
+#ifdef TRACERS_WATER
+        TRGMELT = 0.
+#endif
+      end if
 
 C**** Set conservation diagnostics for land ice mass, energy
       QCON=(/ F, F, F, T, T, F, F, F, T, F, F/)
@@ -154,19 +255,22 @@ c       AREG(JR,J_ERUN )=AREG(JR,J_ERUN )+ERUN0*PLICE*DXYPJ ! (Tg=0)
 !@auth Original Development team
 !@ver  1.0
 !@calls LANDICE:LNDICE
-      USE MODEL_COM, only : im,jm,flice,itlandi
-      USE GEOM, only : imaxj,dxyp
+      USE MODEL_COM, only : im,jm,flice,itlandi,itocean,itoice
+      USE GEOM, only : imaxj,dxyp,bydxyp
+      USE LANDICE, only : lndice,ace1li,ace2li
+      USE SEAICE_COM, only : rsi
       USE DAGCOM, only : aj,areg,aij,jreg,ij_runli,ij_f1li,ij_erun2
      *     ,j_wtr1,j_ace1,j_wtr2,j_ace2,j_snow,j_run
-     *     ,j_implh,j_implm,j_rsnow,ij_rsnw,ij_rsit,ij_snow
+     *     ,j_implh,j_implm,j_rsnow,ij_rsnw,ij_rsit,ij_snow,ij_f0oc
+     *     ,j_rvrd,j_ervr,ij_mrvr,ij_ervr
       USE LANDICE_COM, only : snowli,tlandi
 #ifdef TRACERS_WATER
      *     ,ntm,trsnowli,trlndi,trli0
 #endif
-      USE LANDICE, only : lndice,ace1li,ace2li
-      USE FLUXES, only : e0,e1,evapor,gtemp,runoli
+      USE FLUXES, only : e0,e1,evapor,gtemp,runoli,gmelt,egmelt
 #ifdef TRACERS_WATER
-     *     ,trunoli,trevapor,gtracer
+     *     ,trunoli,trevapor,gtracer,trgmelt
+      USE TRACER_DIAG_COM, only : taijn,tij_rvr
 #endif
       IMPLICIT NONE
 
@@ -255,8 +359,29 @@ C**** ACCUMULATE DIAGNOSTICS
         AIJ(I,J,IJ_F1LI) =AIJ(I,J,IJ_F1LI) +EDIFS+F1DT
         AIJ(I,J,IJ_RUNLI)=AIJ(I,J,IJ_RUNLI)+RUN0
         AIJ(I,J,IJ_ERUN2)=AIJ(I,J,IJ_ERUN2)+EDIFS
-C****
       END IF
+
+C**** Accumulate diagnostics related to iceberg flux here also
+      AJ(J,J_RVRD,ITOCEAN) = AJ(J,J_RVRD,ITOCEAN)+(1.-RSI(I,J))
+     *     * GMELT(I,J)*BYDXYP(J)
+      AJ(J,J_ERVR,ITOCEAN) = AJ(J,J_ERVR,ITOCEAN)+(1.-RSI(I,J))
+     *     *EGMELT(I,J)*BYDXYP(J)
+      AJ(J,J_RVRD,ITOICE)  = AJ(J,J_RVRD,ITOICE) +    RSI(I,J)
+     *     * GMELT(I,J)*BYDXYP(J)
+      AJ(J,J_ERVR,ITOICE)  = AJ(J,J_ERVR,ITOICE) +    RSI(I,J)
+     *     *EGMELT(I,J)*BYDXYP(J)
+      AIJ(I,J,IJ_F0OC) = AIJ(I,J,IJ_F0OC)        +(1.-RSI(I,J))
+     *     *EGMELT(I,J)*BYDXYP(J)
+      
+      AREG(JR,J_RVRD) = AREG(JR,J_RVRD) +  GMELT(I,J)
+      AREG(JR,J_ERVR) = AREG(JR,J_ERVR) + EGMELT(I,J)
+      AIJ(I,J,IJ_MRVR)=AIJ(I,J,IJ_MRVR) +  GMELT(I,J)
+      AIJ(I,J,IJ_ERVR)=AIJ(I,J,IJ_ERVR) + EGMELT(I,J)
+#ifdef TRACERS_WATER
+      TAIJN(I,J,TIJ_RVR,:)=TAIJN(I,J,TIJ_RVR,:)+ TRGMELT(:,I,J)
+     *     *BYDXYP(J)
+#endif
+C****
       END DO
       END DO
       END SUBROUTINE GROUND_LI

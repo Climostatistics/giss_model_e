@@ -789,7 +789,7 @@ C****
       USE GEOM, only : imaxj,dxyp
       USE DAGCOM, only : aj,areg,jreg,j_implm,j_implh,j_oht,oa
       USE FLUXES, only : runosi,erunosi,srunosi,e0,e1,evapor,dmsi,dhsi
-     *     ,dssi,flowo,eflowo,gtemp,sss,fwsim,mlhc
+     *     ,dssi,flowo,eflowo,gtemp,sss,fwsim,mlhc,gmelt,egmelt
 #ifdef TRACERS_WATER
      *     ,dtrsi
 #endif
@@ -832,9 +832,9 @@ C**** get ice-ocean fluxes from sea ice routine
           RUN0=RUNOSI(I,J)-SRUNOSI(I,J) ! fw, includes runoff+basal
           FIDT=ERUNOSI(I,J)
 c          SALT=SRUNOSI(I,J)
-C**** get river runoff/simelt flux
-          RVRRUN = FLOWO(I,J)/(FOCEAN(I,J)*DXYPJ)
-          RVRERUN=EFLOWO(I,J)/(FOCEAN(I,J)*DXYPJ)
+C**** get river runoff/iceberg melt flux
+          RVRRUN =( FLOWO(I,J)+ GMELT(I,J))/(FOCEAN(I,J)*DXYPJ)
+          RVRERUN=(EFLOWO(I,J)+EGMELT(I,J))/(FOCEAN(I,J)*DXYPJ)
           OA(I,J,4)=OA(I,J,4)+RVRERUN ! add rvr E to surf. energy budget
 
           IF (KOCEAN .EQ. 1) THEN

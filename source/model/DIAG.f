@@ -1,7 +1,7 @@
 #include "rundeck_opts.h"
 
 !@sum  DIAG ModelE diagnostic calculations
-!@auth G. Schmidt/J. Lenrer/R. Ruedy/M. Kelley
+!@auth G. Schmidt/J. Lerner/R. Ruedy/M. Kelley
 !@ver  1.0
 C**** AJ(J,N)  (ZONAL SUM OVER LONGITUDE AND TIME)
 C****   See j_defs for contents

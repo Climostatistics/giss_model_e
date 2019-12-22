@@ -257,3 +257,8 @@ clean:
 vclean:
 	rm -f *.o *.mod *.vo *.inc .depend* *.sig
 
+src_cpp_dir: $(FSRCS_CPP)
+	mkdir $(DECKS_DIR)/$(RUN)_src
+	mv $(FSRCS_CPP)  $(DECKS_DIR)/$(RUN)_src
+	cd $(DECKS_DIR)/$(RUN)_src; ls `pwd`/*.cpp >file_list
+

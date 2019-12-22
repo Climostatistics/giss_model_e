@@ -194,7 +194,8 @@ c        CALL CHECKO ('STADVI')
       REAL*4, DIMENSION(IM,JM,LMO):: MO4,G0M4,S0M4,GZM4,SZM4
       CHARACTER*80 TITLE
       REAL*8 FJEQ,SM,SG0,SGZ,SS0,SSZ
-      LOGICAL, INTENT(IN) :: iniOCEAN,istart
+      LOGICAL, INTENT(IN) :: iniOCEAN
+      INTEGER, INTENT(IN) :: istart
 C****
 C**** Check that KOCEAN is set correctly
 C****
@@ -404,6 +405,7 @@ C****
 !@sum  daily_OCEAN performs the daily tasks for the ocean module
 !@auth Original Development Team
 !@ver  1.0
+      USE CONSTANT, only : sday
       IMPLICIT NONE
       LOGICAL, INTENT(IN) :: end_of_day
 
@@ -411,7 +413,7 @@ C**** Only do this at end of the day
       IF (end_of_day) THEN
 
 C**** Add glacial melt from Antarctica and Greenland
-        CALL GLMELT
+        CALL GLMELT(SDAY)
 
 C**** set gtemp arrays for ocean
         CALL TOC2SST
@@ -3401,102 +3403,39 @@ C****
       RETURN
       END SUBROUTINE AT2OV
 
-      SUBROUTINE GLMELT
+      SUBROUTINE GLMELT(DT)
 !@sum  GLMELT adds glacial melt around Greenland and Antarctica to ocean
 !@auth Sukeshi Sheth/Gavin Schmidt
 !@ver  1.0
-      USE CONSTANT, only : lhm
-      USE MODEL_COM, only : itocean,itoice
-      USE GEOM, only : bydxyp
+      USE MODEL_COM, only : dtsrc
+      USE OCEAN, only : imaxj,jm,g0m,mo,ze,focean,dxypo
 #ifdef TRACERS_OCEAN
-      USE TRACER_COM, only : trglac
-      USE OCEAN, only : trmo
+     *     ,trmo
 #endif
-      USE OCEAN, only : im,jm,lmo,g0m,s0m,mo,ze,focean,bydxypo,dxypo
-      USE DAGCOM, only : aij,ij_f0oc,aj,areg,jreg,j_rvrd,j_ervr
-      USE SEAICE_COM, only : rsi
+      USE FLUXES, only : gmelt,egmelt
+#ifdef TRACERS_WATER
+     *     ,trgmelt
+#endif
       IMPLICIT NONE
-!@var ACCPDA total accumulation per day for Antarctica (kg/day)
-!@var ACCPDG total accumulation per day for Greenland (kg/day)
-      REAL*8, PARAMETER :: ACCPDA = 2016.d12/365., ACCPDG = 316d12/365.
-C**** Note thes parameters are highly resolution dependent!
-      INTEGER, PARAMETER :: JML=4, JMU=8, IML1=24, IMU1=36, IML2=69,
-     *     IMU2=11, MAXL=5, NBOX=10, NGRID=111
-      INTEGER IFW(NBOX),JFW(NBOX)
-      DATA IFW/26,25,25,25,29,29,30,31,32,33/
-      DATA JFW/39,40,41,42,39,40,40,40,41,42/
-      REAL*8 ACCPCA,ACCPMA,ACCPCG,ACCPMG,DGM,DMM
-      INTEGER I,J,L,N
-C**** the net accumulation from IPCC2 report is 2016X10**12 kg/year
-C**** for Antarctica and for Greenland it is 316X10**12 kg/year
-C****
-C****  here fresh water is being added to the Ross and Weddell
-C****  seas. this is the net accumulation on the continent, because
-C****  there is no iceberg calving in the model and the ice sheets
-C****  are not assumed to be growing.
-C****  fresh water is being added from 78S to 62S and from 0-60W
-C****  and 135W to 165E for Antarctica
-C****  Note that water goes in with as if it is ice at 0 deg.
-C****  Possibly this should be a function of in-situ freezing temp?
-C****
-      ACCPCA = ACCPDA/FLOAT(NGRID) ! accumulation per water column
-C**** this accumulation is distributed in the water column in a way
-C**** that is proportional to the depth of the column
-      ACCPMA = ACCPCA/ZE(MAXL)
+!@var MAXL number of ocean levels over which GMELT is applied
+      INTEGER, PARAMETER :: MAXL=5
+      REAL*8, INTENT(IN) :: DT  !@var DT timestep for GLMELT call
+      REAL*8 DZ
+      INTEGER I,J,L
+
       DO L=1,MAXL
-        DGM = -LHM*ACCPMA*(ZE(L)-ZE(L-1))
-        DO J=JML,JMU
-          DMM = ACCPMA*(ZE(L)-ZE(L-1))
-          DO I=1,IM
-            IF (FOCEAN(I,J).GT.0.) THEN
-              IF ((I.GE.IML1.AND.I.LE.IMU1) .or. I.GE.IML2 .or. I.LE
-     *             .IMU2) THEN
-                MO(I,J,L)  =  MO(I,J,L) + DMM/(DXYPO(J)*FOCEAN(I,J))
-                G0M(I,J,L) = G0M(I,J,L) + DGM
+C**** divide over depth and scale for time step
+        DZ=DT*(ZE(L)-ZE(L-1))/(DTsrc*ZE(MAXL))
+        DO J=1,JM
+          DO I=1,IMAXJ(J)
+            IF (FOCEAN(I,J).GT.0. .and. GMELT(I,J).gt.0) THEN
+              MO(I,J,L) = MO(I,J,L)+GMELT(I,J)*DZ/(DXYPO(J)*FOCEAN(I,J))
+              G0M(I,J,L)=G0M(I,J,L)+EGMELT(I,J)*DZ
 #ifdef TRACERS_OCEAN
-                TRMO(I,J,L,:)=TRMO(I,J,L,:)+trglac(:)*DMM
+              TRMO(I,J,L,:)=TRMO(I,J,L,:)+TRGMELT(:,I,J)*DZ
 #endif
-C**** accumulate atmospheric glacial runoff diags (copied from riverf)
-                AJ(J,J_RVRD,ITOCEAN)=AJ(J,J_RVRD,ITOCEAN)+
-     *               (1.-RSI(I,J))*DMM*BYDXYP(J)
-                AJ(J,J_ERVR,ITOCEAN)=AJ(J,J_ERVR,ITOCEAN)+
-     *               (1.-RSI(I,J))*DGM*BYDXYP(J)
-                AJ(J,J_RVRD,ITOICE)=AJ(J,J_RVRD,ITOICE) +
-     *               RSI(I,J)*DMM*BYDXYP(J)
-                AJ(J,J_ERVR,ITOICE)=AJ(J,J_ERVR,ITOICE) +
-     *               RSI(I,J)*DGM*BYDXYP(J)
-                AIJ(I,J,IJ_F0OC)=AIJ(I,J,IJ_F0OC)+
-     *               (1.-RSI(I,J))*DGM*BYDXYP(J)
-              END IF
             END IF
           END DO
-        END DO
-      END DO
-C**** around greenland the freshwater is added to both the east and
-C**** west coasts in the one grid box closest to the coast which is
-C**** determined by the direction in the river flow file.
-      ACCPCG = ACCPDG/FLOAT(NBOX) ! accum per water column
-C**** this accumulation is again distributed as above
-      ACCPMG = ACCPCG/ZE(MAXL)
-      DO L=1,MAXL
-        DGM = -LHM*ACCPMG*(ZE(L)-ZE(L-1))
-        DO N=1,NBOX
-          I=IFW(N)
-          J=JFW(N)
-          DMM = ACCPMG*(ZE(L)-ZE(L-1))
-          MO(I,J,L)  =  MO(I,J,L) + DMM/(DXYPO(J)*FOCEAN(I,J))
-          G0M(I,J,L) = G0M(I,J,L) + DGM
-#ifdef TRACERS_OCEAN
-          TRMO(I,J,L,:)=TRMO(I,J,L,:)+trglac(:)*DMM
-#endif
-C**** accumulate atmospheric glacial runoff diags (copied from riverf)
-          AJ(J,J_RVRD,ITOCEAN)=AJ(J,J_RVRD,ITOCEAN)+(1.-RSI(I,J))*DMM
-     *         *BYDXYP(J)
-          AJ(J,J_ERVR,ITOCEAN)=AJ(J,J_ERVR,ITOCEAN)+(1.-RSI(I,J))*DGM
-     *         *BYDXYP(J)
-          AJ(J,J_RVRD,ITOICE)=AJ(J,J_RVRD,ITOICE)+RSI(I,J)*DMM*BYDXYP(J)
-          AJ(J,J_ERVR,ITOICE)=AJ(J,J_ERVR,ITOICE)+RSI(I,J)*DGM*BYDXYP(J)
-          AIJ(I,J,IJ_F0OC)=AIJ(I,J,IJ_F0OC) +(1.-RSI(I,J))*DGM*BYDXYP(J)
         END DO
       END DO
 C****

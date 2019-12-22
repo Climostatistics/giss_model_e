@@ -70,14 +70,16 @@ C**** currently saved - should be replaced by fluxed quantities
 !@var qflux1 surface turbulent q-flux (=-<qw>)
       real*8, dimension(im,jm) :: uflux1,vflux1,tflux1,qflux1
 
-C**** The E/FLOWO and E/S/MELTI arrays are used to flux quantities to 
-C**** the ocean that are not tied to the open water/ice covered 
-C**** fractions. This is done separately for river flow and complete
-C**** sea ice melt.
+C**** The E/FLOWO, E/S/MELTI, E/GMELT arrays are used to flux quantities 
+C**** to the ocean that are not tied to the open water/ice covered 
+C**** fractions. This is done separately for river flow, complete
+C**** sea ice melt and iceberg/glacial melt.
 !@var FLOWO,EFLOWO mass, energy from rivers into ocean (kg, J)
       REAL*8, DIMENSION(IM,JM) :: FLOWO,EFLOWO
 !@var MELTI,EMELTI,SMELTI mass,energy,salt from simelt into ocean (kg,J)
       REAL*8, DIMENSION(IM,JM) :: MELTI,EMELTI,SMELTI
+!@var GMELT,EGMELT mass,energy from glacial melt into ocean (kg,J)
+      REAL*8, DIMENSION(IM,JM) :: GMELT,EGMELT
 
 !@var PREC precipitation (kg/m^2)
       REAL*8, DIMENSION(IM,JM) :: PREC
@@ -132,6 +134,8 @@ C**** sea ice melt.
       REAL*8, DIMENSION(NTM,IM,JM) :: TRFLOWO
 !@var TRMELTI tracer from simelt into ocean (kg)
       REAL*8, DIMENSION(NTM,IM,JM) :: TRMELTI
+!@var TRGMELT tracer from glacial melt into ocean (kg)
+      REAL*8, DIMENSION(NTM,IM,JM) :: TRGMELT
 !@var ftrsi_io ice-ocean tracer fluxes under ice (kg/m^2)
       REAL*8, DIMENSION(NTM,IM,JM) :: ftrsi_io
 #endif
