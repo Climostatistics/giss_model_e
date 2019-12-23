@@ -270,6 +270,8 @@ c
       scale_j(k) = 1./DTSRC
       ia_j(k) = ia_src
 c
+C**** Note this is used for ice in fixed SST runs, but for ocean in
+C**** qflux runs. Over land, it is always used for landice changes.
       k=k+1
       J_IMPLH = k               !                                 1 GP
       name_j(k) = 'impl_ht'
@@ -351,10 +353,12 @@ c
       scale_j(k) = SDAY/DTSRC
       ia_j(k) = ia_src
 c
+C**** Note this is used for ice in fixed SST runs, but for ocean in
+C**** qflux runs. Over land, it is always used for landice changes.
       k=k+1
       J_IMPLM = k               !                                 1 GP
       name_j(k) = 'impl_m_flux'
-      lname_j(k) = 'DOWNWARD IMPLICIT MASS FLUX AT BASE OR OCN ML'
+      lname_j(k) = 'DOWNWARD IMPLICIT MASS FLUX AT ICE BASE/OCN ML'
       units_j(k) = 'mm/day'
       stitle_j(k)= ' DWN IMPL WT FLX'
       scale_j(k) = SDAY/DTSRC

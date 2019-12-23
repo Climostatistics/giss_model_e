@@ -36,7 +36,7 @@ OCNDYN OSTRAITS OCNGM OCNKPP           ! dynamic ocean routines
 ODIAG_PRT                              ! ocean diagnostic print out
 OCNFUNTAB                           ! ocean function look up table
 ICEDYN ICEDYN_DRV                   ! ice dynamics
-SNOW                                ! snow model
+SNOW_DRV SNOW                       ! snow model
 RAD_COM RAD_DRV RADIATION           ! radiation modules
 DIAG_COM DIAG DEFACC DIAG_PRT       ! diagnostics
 CONST FFT72 UTILDBL SYSTEM          ! utilities

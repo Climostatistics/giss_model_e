@@ -156,14 +156,14 @@ This is stored through the CVS revision control system, and copies can
 be checked-out to your home directory using the following commands:</p>
 <tt>
    export CVSROOT=/u/cmrun/cvs/repository<br>
-   cvs checkout -r modelE-2-3-3 modelE<br>
+   cvs checkout -r modelE-2-3-4 modelE<br>
    cd modelE<br>
    cvs tag -b your_tag_here<br>
    cvs update -r your_tag_here<br>
 </tt>
 
 <p>This will create a directory modelE/ in your directory. The code
-will correspond to modelE-2-3-3. Please check to see if this is the
+will correspond to modelE-2-3-4. Please check to see if this is the
 latest release. It will be tagged with your own tag name so that your
 developments can be maintained by CVS, without conflicting with the
 main development branch.</P>
@@ -1192,8 +1192,11 @@ is no simple way to pick and choose exactly which diagnostics appear,
 although we are working on a scheme to do just that. Some of the
 following options are rarely used, and may soon be made obsolete.
 These switches can also be used in 'Ipd' input for pdE to control
-which binary output to produce. If QDIAG=.true. some binary files</p>
-are created accompanying the printed output</p>
+which output to produce. If QDIAG=.true. some binary files
+are created accompanying the printed output. If QDIAG_ratios=.true.
+fields which are the products of q1 and q2 and whose titles are
+of the form "q1 x q2" are replaced by the ratios field/q2, the
+title being shortened to "q1" (default).</p>
 
 <p>Current options are:
 <pre>
@@ -1202,8 +1205,12 @@ KDIAG(1)  < 9 print Zonal/Regional budget pages
    2-7 only print global zonal means
    = 1 print all zonal diagnostics
 
-KDIAG(2)  < 9 print Latitude-height diagnostics
+KDIAG(2)  = 0 print Latitude-height diagnostics
+          = 1 print at most fields listed in file Ijk
+              (rearranging the lines of Ijk has no effect)
           = 8 Only print spectral analysis of standing eddies
+          = 9 skip all Latitude-height diagnostics
+          2-7 same as 1
 
 KDIAG(3)  = 0 standard printout, all binary files if QDIAG=.true.
           = 1 ij-fields as in list Iij, all ijk-fields

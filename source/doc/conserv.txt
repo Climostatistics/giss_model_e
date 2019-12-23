@@ -208,9 +208,20 @@ Conservation of Ocean/Lake Ice Energy
 
 Ocean Ice: Change of OICE ENRG by ADVEC (10^-3 W/m^2) = 0
 
+In fixed SST models:
+
 Lake/Ocean Ice: SUM CHANGES OF ICE ENRG (10^-3 W/m^2) / 1000 = 
  ( Ice covered: [Net Heat At Z0] * <OIfrac or LKIfrac>
   - total Oceans/Lakes: [Ht Ice Melt + Dwn Impl Ht Flx] * <OCfrac or LKfrac> )
+
+In coupled oceans: 
+
+Lake/Ocean Ice: SUM CHANGES OF ICE ENRG (10^-3 W/m^2) / 1000 = 
+ ( Ice covered: [Net Heat At Z0] * <OIfrac or LKIfrac>
+  - total Oceans/Lakes: [Ht Ice Melt] * <OCfrac or LKfrac> )
+
+As long as no ice crosses the equator, these conservation properties
+should also work for individual hemispheres.
 
 Total Energy Budget
 -------------------

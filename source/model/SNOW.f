@@ -228,7 +228,7 @@ ccc for tracers
      &    srht, trht, snht, htpr, evaporation, pr, dt,
      &    t_ground, dz_ground,
      &    water_to_ground, heat_to_ground,
-     &    radiation_out, snsh_dt, evap_dt, fb_or_fv,
+     &    radiation_out, snsh_dt, evap_dt, ! fb_or_fv,
      &     tr_flux )
       implicit none
 !@sum  a wrapper that calles real snow_adv (introduced for debugging)
@@ -238,7 +238,7 @@ ccc input:
       integer nl
       real*8 srht, trht, snht, htpr, evaporation
       real*8 pr, dt, t_ground, dz_ground
-      real*8 snsh_dt, evap_dt, fb_or_fv
+      real*8 snsh_dt, evap_dt !, fb_or_fv
 
 ccc output:
       real*8 water_to_ground, heat_to_ground

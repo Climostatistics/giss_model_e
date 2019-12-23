@@ -869,6 +869,10 @@ CCC       STOP 'In Radia: Temperature out of range'
         END IF
 C**** MOISTURE VARIABLES
 C---- shl(L)=Q(I,J,L)        ! already defined
+        if(shl(l).lt.0.) then
+          WRITE(99,*) 'In Radia: Time,I,J,L,QL<0',ITime,I,J,L,shl(L)
+          JCKERR=JCKERR+1
+        end if
       END DO
 C**** Radiative Equilibrium Layer data
       DO K=1,LM_REQ

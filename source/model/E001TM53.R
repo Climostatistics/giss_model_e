@@ -37,7 +37,7 @@ SEAICE SEAICE_DRV                   ! seaice modules
 LANDICE LANDICE_DRV                 ! land ice modules
 OCEAN OCNML                         ! ocean modules
 ICEDYN_DRV ICEDYN                   ! ice dynamics modules
-SNOW                                ! snow model
+SNOW_DRV SNOW                       ! snow model
 RAD_COM RAD_DRV RADIATION           ! radiation modules
 DIAG_COM DIAG DEFACC DIAG_PRT       ! diagnostics
 CONST FFT72 UTILDBL SYSTEM          ! utilities
@@ -45,7 +45,7 @@ POUT                                ! post-processing output
 
 Data input files:
 AIC=AIC.RES_M53.D771201
-GIC=GIC.rsfB357M12.1DEC1956.1 ! initial conditions (ground)
+GIC=GIC.rsfB357M12.1DEC1956.1.ext ! initial conditions (ground)
 ! OHT=OTSPEC.RB399AM12.M250D ! not needed if KOCEAN=0
 OCNML=Z1O.B4X5.cor   ! needed only for postprocessing
 OSST=OST4X5.B.1946-55avg.Hadl1.1 SICE=SICE4X5.B.1946-55avg.Hadl1.1 ! ocn

@@ -26,7 +26,7 @@
 #endif
 C**** Interface to PBL
       USE SOCPBL, only : zgs,ZS1,TGV,TKV,QG_SAT,HEMI,DTSURF,POLE
-     &     ,US,VS,WS,WSM,WSH,TSV,QSRF,PSI,DBL,KMS,KHS,KQS,PPBL
+     &     ,US,VS,WS,WSM,WSH,TSV,QSRF,PSI,DBL,KHS,KQS !,PPBL ! ,KMS
      &     ,UG,VG,WG,ZMIX
       USE PBLCOM, only : ipbl,cmgs,chgs,cqgs,tsavg,dclev
       USE PBL_DRV, only : pbl,evap_max,fr_sat,uocean,vocean

@@ -103,69 +103,34 @@ C        roughness lengths from Brutsaert for rough surfaces
       ztop=zgs+zs1  ! zs1 is calculated before pbl is called
       IF (TKV.EQ.TGV) TGV=1.0001d0*TGV
 
-      ! find PBL height dbl (in meters) and the GCM layer (L) at which
-      ! to compute ug, vg and wg
+      ! FIND THE PBL HEIGHT IN METERS (DBL) AND THE CORRESPONDING
+      ! GCM LAYER (L) AT WHICH TO COMPUTE UG,VG AND WG.
+      ! LDC IS THE LAYER TO WHICH DRY CONVECTION/TURBULENCE MIXES
 
-      IF (TKV.GE.TGV) THEN
-
-        ! ATMOSPHERE IS STABLE WITH RESPECT TO THE GROUND
-        ! COMPUTE THE PBL HEIGHT (DBL, IN METERS) WITH EMPIRICAL FORMULA
-        ! AND DETERMINE THE GCM VERTICAL LAYER CORRESPONDING TO THE DBL
-
-        USTAR=USTAR_PBL(I,J,ITYPE)
-        DBL=min(0.3d0*USTAR/OMEGA2,dbl_max) ! only an initial estimate
-        ! in subroutine getl, dbl will be determined more accurately
-        if (dbl.le.ztop) then 
-          dbl=ztop  ! has to be re-determined in subroutine getl
-          L=1
-        else
-          zpbl=ztop
-          pl1=pmid(1,i,j)
-          tl1=t(i,j,1)*(1.+deltx*q(i,j,1))*pk(1,i,j)
-          ! find the next L higher than dbl
-          do l=2,ls1
-            pl=pmid(l,i,j)
-            tl=t(i,j,l)*(1.+deltx*q(i,j,l))*pk(l,i,j) !virtual,absolute
-            tbar=thbar(tl1,tl)
-            zpbl=zpbl-(rgas/grav)*tbar*(pl-pl1)/(pl1+pl)*2.
-            if (zpbl.ge.dbl) exit
-            pl1=pl
-            tl1=tl
-          end do
-        endif
-
+      LDC=max(int(DCLEV(I,J)+.5d0),1)
+      if (LDC.eq.1) then
+        dbl=ztop
+        L=1
       else
-
-        ! unstable ase,
-        ! LDC IS THE LAYER TO WHICH DRY CONVECTION/TURBULENCE MIXES
-
-        LDC=max(int(DCLEV(I,J)+.5d0),1)
-        if (LDC.eq.1) then
-          dbl=ztop
-          L=1
-        else
-          zpbl=ztop
-          pl1=pmid(1,i,j)
-          tl1=t(i,j,1)*(1.+deltx*q(i,j,1))*pk(1,i,j)
-          zpbl1=ztop
-          do L=2,LDC
-            pl=pmid(l,i,j)
-            tl=t(i,j,l)*(1.+deltx*q(i,j,l))*pk(l,i,j)
-            tbar=thbar(tl1,tl)
-            zpbl=zpbl-(rgas/grav)*tbar*(pl-pl1)/(pl1+pl)*2.
-            if (zpbl.gt.dbl_max) then
-              zpbl=zpbl1
-              exit
-            endif
-            pl1=pl
-            tl1=tl
-            zpbl1=zpbl
-            if(L.eq.LDC) exit ! so that L will not increase by one
-          end do
-          l=l-1
-          dbl=zpbl
-        endif
-
+        zpbl=ztop
+        pl1=pmid(1,i,j)
+        tl1=t(i,j,1)*(1.+deltx*q(i,j,1))*pk(1,i,j)
+        zpbl1=ztop
+        do L=2,LDC
+          pl=pmid(l,i,j)
+          tl=t(i,j,l)*(1.+deltx*q(i,j,l))*pk(l,i,j)
+          tbar=thbar(tl1,tl)
+          zpbl=zpbl-(rgas/grav)*tbar*(pl-pl1)/(pl1+pl)*2.
+          if (zpbl.gt.dbl_max) then
+            zpbl=zpbl1
+            exit
+          endif
+          pl1=pl
+          tl1=tl
+          zpbl1=zpbl
+          if(L.eq.LDC) exit ! so that L will not increase by one
+        end do
+        dbl=zpbl
       endif
 
       ppbl=pedn(l,i,j)
@@ -252,6 +217,11 @@ C        roughness lengths from Brutsaert for rough surfaces
       ustar_pbl(i,j,itype)=ustar
 C ******************************************************************
       TS=TSV/(1.+QSRF*deltx)
+      if ( ts.lt.152d0 .or. ts.gt.423d0 ) then
+        write(6,*) 'PBL: Ts bad at',i,j,' itype',itype,ts
+        if (ts.gt.1d3) call stop_model("PBL: Ts out of range",255)
+        if (ts.lt.50d0) call stop_model("PBL: Ts out of range",255)
+      end if
       WSAVG(I,J)=WSAVG(I,J)+WS*PTYPE
       TSAVG(I,J)=TSAVG(I,J)+TS*PTYPE
       if(itype.ne.4) QSAVG(I,J)=QSAVG(I,J)+QSRF*PTYPE

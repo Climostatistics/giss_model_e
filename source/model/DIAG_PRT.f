@@ -3336,7 +3336,7 @@ c**** offsets ("  + " or "  - " in lname_ij, i.e. 2 blanks,+|-,1 blank)
 
 c**** ratios (the denominators)
         k1 = index(lname_ij(k),' x ')
-        if (k1 .gt. 0) then
+        if (k1 .gt. 0 .and. qdiag_ratios) then
           if (index(lname_ij(k),' x POCEAN') .gt. 0) then
             do j=1,jm
             do i=1,im
@@ -5103,7 +5103,7 @@ C****
       REAL*4 AX(ntau,npres)
       INTEGER N,ITAU,IPRESS,J,IU_ISCCP
 
-C**** calculate area weightings 
+C**** calculate area weightings
       area(:)=0.
       do j=1,jm
         n=isccp_reg(j)

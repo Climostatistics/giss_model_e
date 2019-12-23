@@ -5,9 +5,9 @@
 !@auth Ye Cheng/G. Hartke (modifications by G. Schmidt)
 !@ver  1.0 (from PBLB336E)
 !@cont pbl,advanc,stars,getl,dflux,simil,griddr,tfix
-!@cont ccoeff0,getk,e_eqn,t_eqn,q_eqn,tr_eqn,uv_eqn,level2
+!@cont ccoeff0,getk,e_eqn,t_eqn,q_eqn,uv_eqn
 !@cont t_eqn_sta,q_eqn_sta,uv_eqn_sta
-!@cont inits,tcheck,ucheck,check1,output,rtsafe,fgrid2
+!@cont inits,tcheck,ucheck,check1,output,rtsafe
 
       USE CONSTANT, only : grav,omega,pi,radian,bygrav,teeny,deltx,tf
      &                     ,by3
@@ -208,9 +208,9 @@ c  internals:
 
       real*8 :: lmonin,tstar,qstar,ustar0,test,wstar3,wstar3fac,wstar2h
       real*8 :: bgrid,an2,as2,dudz,dvdz,tau
-      real*8, parameter ::  tol=2d-3,w=.5d0
+      real*8, parameter ::  tol=1d-3,w=.5d0
       integer, parameter ::  itmax=50
-      integer, parameter :: iprint=0,jprint=44  ! set iprint>0 to debug
+      integer, parameter :: iprint=0,jprint=41  ! set iprint>0 to debug
       real*8, dimension(n) :: z,dz,xi,usave,vsave,tsave,qsave
      *       ,usave1,vsave1,tsave1,qsave1             
       real*8, dimension(n-1) :: lscale,zhat,dzh,xihat,km,kh,kq,ke,gm,gh
@@ -254,16 +254,13 @@ C**** end special threadprivate common block
       end do
       ustar0=0.
 
-      call getl1(e,zhat,dzh,lscale,n)
-
       do iter=1,itmax
 
+        call getl(e,u,v,t,zhat,dzh,lscale,dbl,n)
         call getk(km,kh,kq,ke,gm,gh,u,v,t,e,lscale,dzh,n)
         call stars(ustar,tstar,qstar,lmonin,tgrnd,qgrnd,
      2             u,v,t,q,z,z0m,z0h,z0q,cm,ch,cq,
      3             km,kh,kq,dzh,itype,n)
-        call getl(coriol,lmonin,dbl,e,u,v,t,zhat,dzh,lscale,n)
-
 #ifdef TRACERS_ON
         kqsave=kq
         cqsave=cq
@@ -302,7 +299,6 @@ C**** end special threadprivate common block
         test=abs(2.*(ustar-ustar0)/(ustar+ustar0))
         if (test.lt.tol) exit
 
-        if (iter.lt.itmax) then
         do i=1,n-1
           u(i)=w*usave1(i)+(1.-w)*u(i)
           v(i)=w*vsave1(i)+(1.-w)*v(i)
@@ -315,7 +311,6 @@ C**** end special threadprivate common block
           qsave1(i)=q(i)
           esave1(i)=e(i)
         end do
-        end if
 
         ustar0=ustar
 
@@ -453,10 +448,6 @@ c Diagnostics printed at a selected point:
       if (abs(tstar).lt.smin*abs(t(1)-tgrnd)) tstar=smin*(t(1)-tgrnd)
       if (abs(qstar).lt.smin*abs(q(1)-qgrnd)) qstar=smin*(q(1)-qgrnd)
 
-      ustar  = max(ustar,teeny)
-      if (abs(tstar).lt.teeny) tstar=teeny
-      if (abs(qstar).lt.teeny) qstar=teeny
-
       lmonin = ustar*ustar*tgrnd/(kappa*grav*tstar)
       if(abs(lmonin).lt.teeny) lmonin=sign(teeny,lmonin)
 c     To compute the drag coefficient,Stanton number and Dalton number
@@ -465,37 +456,7 @@ c     To compute the drag coefficient,Stanton number and Dalton number
       return
       end subroutine stars
 
-      subroutine getl1(e,zhat,dzh,lscale,n)
-!@sum   getl1 estimates the master length scale of the turbulence model
-!@+     on the secondary grid
-!@auth  Ye Cheng/G. Hartke
-      implicit none
-
-      integer, intent(in) :: n   !@var n  array dimension
-      real*8, dimension(n-1), intent(in) :: e,zhat,dzh
-      real*8, dimension(n-1), intent(out) :: lscale
-      real*8, parameter :: alpha=0.2d0
-
-      real*8 :: sum1,sum2,l0,l1
-      integer :: j
-
-      sum1=0.
-      sum2=0.
-      do j=1,n-1
-        sum1=sum1+sqrt(e(j))*zhat(j)*dzh(j)
-        sum2=sum2+sqrt(e(j))*dzh(j)
-      end do
-      l0=alpha*sum1/sum2
-
-      do j=1,n-1
-        l1=kappa*zhat(j)
-        lscale(j)=l0*l1/(l0+l1)
-      end do
-
-      return
-      end subroutine getl1
-
-      subroutine getl(coriol,lmonin,dbl,e,u,v,t,zhat,dzh,lscale,n)
+      subroutine getl(e,u,v,t,zhat,dzh,lscale,dbl,n)
 !@sum   getl computes the master length scale of the turbulence model
 !@+     on the secondary grid. l0 in this routine is 0.16*(pbl height)
 !@+     according to the LES data (Moeng and Sullivan 1992)
@@ -517,17 +478,11 @@ c     To compute the drag coefficient,Stanton number and Dalton number
       real*8, dimension(n-1), intent(in) :: e,zhat,dzh
       real*8, dimension(n), intent(in) :: u,v,t
       real*8, dimension(n-1), intent(out) :: lscale
-      real*8, intent(in) :: coriol,lmonin
-      real*8, intent(inout) :: dbl
-      real*8, parameter :: dbl_max=3000.d0
+      real*8, intent(in) :: dbl
 
       integer :: i   !@var i  array dimension
       real*8 l0,l1,an2,dudz,dvdz,as2,lmax,lmax2
 
-      if(lmonin.gt.0.d0) then
-        dbl=.3d0*sqrt(ustar*lmonin/max(abs(coriol),teeny))
-        dbl=min(dbl,dbl_max)
-      endif
       l0=.16d0*dbl ! Moeng and Sullivan 1994
       if (l0.lt.zhat(1)) l0=zhat(1)
 
@@ -1004,7 +959,7 @@ c     at edge: e,lscale,km,kh,gm,gh
       real*8, dimension(n-1), intent(in) :: e,lscale,dzh
       real*8, dimension(n-1), intent(out) :: km,kh,kq,ke,gma,gha
 
-      real*8, parameter :: se=0.04d0,kmax=100.d0
+      real*8, parameter :: se=0.1d0,kmax=100.d0
      &  ,kmmin=1.5d-5,khmin=2.5d-5,kqmin=2.5d-5,kemin=1.5d-5
       real*8 :: an2,dudz,dvdz,as2,ell,den,qturb,tau,gh,gm,gmmax,sm,sh
      &  ,sq,sq_by_sh,taue
@@ -1107,29 +1062,29 @@ c
       sup(1)=0.
       rhs(1)=0.5*b123*ustar*ustar
 
-c      j=n-1
-c      an2=2.*grav*(t(j+1)-t(j))/((t(j+1)+t(j))*dzh(j))
-c      dudz=(u(j+1)-u(j))/dzh(j)
-c      dvdz=(v(j+1)-v(j))/dzh(j)
-c      as2=max(dudz*dudz+dvdz*dvdz,teeny)
-c      ri=an2/as2
-c      if(ri.gt.rimax) ri=rimax
-c      aa=c1*ri*ri-c2*ri+c3
-c      bb=c4*ri+c5
-c      cc=2.d0
-c      if(abs(aa).lt.1d-8) then
-c        gm= -cc/bb
-c      else
-c        tmp=bb*bb-4.*aa*cc
-c        gm=(-bb-sqrt(tmp))/(2.*aa)
-c      endif
-c      sub(n-1)=0.
-c      dia(n-1)=1.
-c      rhs(n-1)=max(0.5*(B1*lscale(j))**2*as2/max(gm,teeny),teeny)
-
-      sub(n-1)=-1.
+      j=n-1
+      an2=2.*grav*(t(j+1)-t(j))/((t(j+1)+t(j))*dzh(j))
+      dudz=(u(j+1)-u(j))/dzh(j)
+      dvdz=(v(j+1)-v(j))/dzh(j)
+      as2=max(dudz*dudz+dvdz*dvdz,teeny)
+      ri=an2/as2
+      if(ri.gt.rimax) ri=rimax
+      aa=c1*ri*ri-c2*ri+c3
+      bb=c4*ri+c5
+      cc=2.d0
+      if(abs(aa).lt.1d-8) then
+        gm= -cc/bb
+      else
+        tmp=bb*bb-4.*aa*cc
+        gm=(-bb-sqrt(tmp))/(2.*aa)
+      endif
+      sub(n-1)=0.
       dia(n-1)=1.
-      rhs(n-1)=0.
+      rhs(n-1)=max(0.5*(B1*lscale(j))**2*as2/max(gm,teeny),teeny)
+
+c     sub(n-1)=-1.
+c     dia(n-1)=1.
+c     rhs(n-1)=0.
 
       call TRIDIAG(sub,dia,sup,rhs,e,n-1)
 
@@ -1209,8 +1164,8 @@ c      rhs(n-1)=max(0.5*(B1*lscale(j))**2*as2/max(gm,teeny),teeny)
 !@sum q_eqn integrates differential eqn q (tridiagonal method)
 !@+   between the surface and the first GCM layer.
 !@+   The boundary conditions at the bottom are:
-!@+   kq * dq/dz = - min ( cq * usurf * (qg - q) ,
-!@+         fr_sat * cq * usurf * (qg - q) + ( 1 - fr_sat ) * flux_max )
+!@+   kq * dq/dz = min ( cq * usurf * (q - qg) ,
+!@+         fr_sat * cq * usurf * (q - qg) + ( 1 - fr_sat ) * flux_max )
 !@+   at the top, the moisture is prescribed.
 !@auth Ye Cheng/G. Hartke
 !@ver  1.0
@@ -1271,8 +1226,8 @@ c**** for unsaturated fraction
 
 c**** Flux is too high, have to recompute with the following boundary
 c**** conditions at the bottom:
-c**** kq * dq/dz = - (  fr_sat * cq * usurf * (qg - q)
-c****              + ( 1 - fr_sat ) * flux_max  )
+c**** kq * dq/dz = fr_sat * cq * usurf * (q - qg)
+c****              + ( 1 - fr_sat ) * flux_max
 
       dia(1) = 1. + fr_sat*factq
       sup(1) = -1.
@@ -1744,8 +1699,8 @@ c       rhs1(i)=-coriol*(u(i)-ug)
      *     ,wstar3fac,wstar3,wstar2h,usurfq,usurfh
       integer, save :: iter_count=0
       integer, parameter ::  itmax=100
-      integer, parameter ::  iprint=0,jprint=44 ! set iprint>0 to debug
-      real*8, parameter ::  tol=2d-3,w=.5d0
+      integer, parameter ::  iprint=0,jprint=41 ! set iprint>0 to debug
+      real*8, parameter ::  w=0.50,tol=1d-3
       integer :: i,j,iter,ierr  !@var i,j,iter loop variable
 
 c**** special threadprivate common block (compaq compiler stupidity)
@@ -1812,15 +1767,13 @@ c Initialization for iteration:
       end do
 
       ustar0=0.
-      call getl1(e,zhat,dzh,lscale,n)
-
       do iter=1,itmax
 
+        call getl(e,u,v,t,zhat,dzh,lscale,dbl,n)
         call getk(km,kh,kq,ke,gm,gh,u,v,t,e,lscale,dzh,n)
         call stars(ustar,tstar,qstar,lmonin,tgrnd,qgrnd,
      2             u,v,t,q,z,z0m,z0h,z0q,cm,ch,cq,
      3             km,kh,kq,dzh,itype,n)
-        call getl(coriol,lmonin,dbl,e,u,v,t,zhat,dzh,lscale,n)
         !! dbl=.375d0*sqrt(ustar*abs(lmonin)/omega)
         !@+ M.J.Miller et al. 1992, J. Climate, 5(5), 418-434, Eqs(6-7),
         !@+ for heat and mositure

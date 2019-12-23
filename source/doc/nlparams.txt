@@ -4,16 +4,17 @@ nl-Parameter (~alph. order)    short Description                         Default
 ------------                   -----------------                         -------
 HOURI,DATEI,MONTHI,YEARI       model time at start of run               0 1 1 ??
 HOURE,DATEE,MONTHE,YEARE       model time at end   of run               0 1 1 ??
-IHOURE      model time at end of run (hrs since 1/1/Iyear1,hr 0)            (??)
-IRANDI      seed for rand.number sequence to perturb init.conditions           0
-ISTART      type-of-start flag   1-8 starts, >8 continuations                 10
-ITWRITE     controls # pages of radiative debug output                         0
-IWRITE,     if JWRITE<1500 get rad.info for box (Iwrite,Jwrite)                0
-   JWRITE   if JWRITE>1500 get forcing info for years Iwrite->Jwrite           0
-IYEAR1      base year for internal clock ("Itime=0"="1/1/Iyear1,hr 0")    =YEARI
-KDIAG       controls amount of diagnostic printout (0=full->9=none)         12*0
-QDIAG       controls whether binary diagn. files are created (ij,jl..)   .false.
-QCHECK      activates the checking routines (checkt ... )                .false.
+IHOURE       model time at end of run (hrs since 1/1/Iyear1,hr 0)           (??)
+IRANDI       seed for rand.number sequence to perturb init.conditions          0
+ISTART       type-of-start flag   1-8 starts, >8 continuations                10
+ITWRITE      controls # pages of radiative debug output                        0
+IWRITE,      if JWRITE<1500 get rad.info for box (Iwrite,Jwrite)               0
+   JWRITE    if JWRITE>1500 get forcing info for years Iwrite->Jwrite          0
+IYEAR1       base year for internal clock ("Itime=0"="1/1/Iyear1,hr 0")   =YEARI
+KDIAG        controls amount of diagnostic printout (0=full->9=none)        12*0
+QDIAG        controls whether binary diagn. files are created (ij,jl..)  .false.
+QDIAG_ratios fields with titles "q1 x q2" are replaced by field/q2        .true.
+QCHECK       activates the checking routines (checkt ... )               .false.
 
 Note:  default=?? indicates that no reasonable default is set:
 ----              value has to be set in the rundeck
@@ -122,14 +123,14 @@ KDIAG(1->12) - Suppressing printout if >0
   KDIAG(i) may be used to (partially) suppress type i diagn. printout
       i=1  budget pages,zonal means: do  all if        kdiag(1)=0
                               do all but 23 regions if kdiag(1)=1
-                              do global tables only if kdiag(1)=2 
+                              do global tables only if kdiag(1)=2
                               do regional only if      kdiag(1)=8
                               do nothing  if           kdiag(1)=9
            (no binaries for regional statistics, even if qdiag=.true.)
         2  latitude-height tables   kdiag(2)=9  skip all
-             kdiag(2)=2 produce at most the tables listed in Ijk 
+             kdiag(2)=2 produce at most the tables listed in Ijk
              Editing Ijk: just delete lines, rearranging has no effect
-        3  lat-lon maps             
+        3  lat-lon maps
            kdiag(3)=
             0 standard printout, all binary files if QDIAG=.true.
             1 ij-fields as in list Iij, all ijk-fields
@@ -140,7 +141,7 @@ KDIAG(1->12) - Suppressing printout if >0
                          you may delete any other lines
                          you may rearrange the remaining ij-fields
                          you may add blank maplets (up to 10)
-            
+
         4  energy history           skip if kdiag(4)=9
         5  spectral analysis        skip if kdiag(5)=9
         6  diurnal diagnostics      skip if kdiag(6)>3

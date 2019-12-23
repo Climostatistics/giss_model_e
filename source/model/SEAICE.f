@@ -240,7 +240,7 @@ C**** Calculate total snow and ice in upper layers
         SICE = SSIL(2)
         HSNOW = HSNOW + (HSIL(2)-LHM*SICE)*(XSI(2)*MSI1-ACE1I)/(XSI(2)
      $       *MSI1)
-        HICE = HICE + (HSIL(2)-LHM*SICE)*ACE1I/(XSI(2)*MSI1)
+        HICE = HICE + (HSIL(2)-LHM*SICE)*ACE1I/(XSI(2)*MSI1) + LHM*SICE
 #ifdef TRACERS_WATER
         TRSNOW(:) = TRSNOW(:) + TRSIL(:,2)*(XSI(2)*MSI1-ACE1I)
      *       /(XSI(2)*MSI1-SSIL(2))
@@ -1010,14 +1010,14 @@ C**** Remove DRSI amount of ice
 C**** set defaults if no ice is left
         SNOW=0.
         MSI2=AC2OIM
-        HSIL(1:2)=(SHI*TFO-LHM*(1-SSI0))*XSI(1:2)*ACE1I
-        HSIL(3:4)=(SHI*TFO-LHM*(1-SSI0))*XSI(3:4)*AC2OIM
         IF (POCEAN.gt.0) THEN
           SSIL(1:2)=SSI0*XSI(1:2)*ACE1I
           SSIL(3:4)=SSI0*XSI(3:4)*AC2OIM
         ELSE
           SSIL(:) = 0.
         END IF
+        HSIL(1:2)=(SHI*TFO-LHM)*XSI(1:2)*ACE1I+LHM*SSIL(1:2)
+        HSIL(3:4)=(SHI*TFO-LHM)*XSI(3:4)*AC2OIM+LHM*SSIL(3:4)
         TSIL=TFO
 #ifdef TRACERS_WATER
         TRSIL(:,:)=0.

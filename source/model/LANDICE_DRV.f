@@ -90,6 +90,11 @@ C**** This information could be read in from a file.
         do_glmelt=.false.
       END IF
 
+      GMELT = 0. ; EGMELT = 0.
+#ifdef TRACERS_OCEAN
+      TRGMELT = 0.
+#endif
+
       if (do_glmelt .and. glmelt_on.eq.1) then
 C****  Note that water goes in with as if it is ice at 0 deg.
 C****  Possibly this should be a function of in-situ freezing temp?
@@ -138,11 +143,6 @@ C**** Greenland
      *      " in init_LI"
         call stop_model("init_LI: Landmask error 2",255)
       END IF
-      else
-        GMELT = 0. ; EGMELT = 0.
-#ifdef TRACERS_OCEAN
-        TRGMELT = 0.
-#endif
       end if
 
 C**** Set conservation diagnostics for land ice mass, energy

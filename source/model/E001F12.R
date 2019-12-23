@@ -29,7 +29,7 @@ SEAICE SEAICE_DRV                   ! seaice modules
 LANDICE LANDICE_DRV                 ! land ice modules
 OCEAN OCNML                         ! ocean modules
 ICEDYN_DRV ICEDYN                   ! ice dynamics modules        
-SNOW                                ! snow model
+SNOW_DRV SNOW                       ! snow model
 RAD_COM RAD_DRV RADIATION           ! radiation modules
 DIAG_COM DIAG DEFACC DIAG_PRT       ! diagnostics
 CONST FFT144 UTILDBL SYSTEM         ! utilities

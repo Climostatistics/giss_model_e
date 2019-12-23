@@ -22,7 +22,8 @@
 #endif
       USE LANDICE_COM, only : snowli,tlandi
       USE FLUXES, only : gtemp,sss,fwsim,mlhc
-      USE DAGCOM, only : aij, ij_smfx, aj, j_implh, j_implm
+      USE DAGCOM, only : aij, areg, jreg, ij_smfx, aj, j_implh, j_implm,
+     *     j_imelt, j_hmelt, j_smelt
       IMPLICIT NONE
       SAVE
 
@@ -122,7 +123,7 @@ C**** MIXED LAYER DEPTH IS AT ITS MAXIMUM OR TEMP PROFILE IS UNIFORM
       REAL*8, SAVE :: XZO(IM,JM),XZN(IM,JM)
       LOGICAL, INTENT(IN) :: end_of_day
 
-      INTEGER n,J,I,LSTMON,K,m,m1
+      INTEGER n,J,I,LSTMON,K,m,m1,JR
       REAL*8 PLICEN,PLICE,POICE,POCEAN,RSICSQ,ZIMIN,ZIMAX,X1
      *     ,X2,Z1OMIN,RSINEW,TIME,FRAC,MSINEW,OPNOCN,TFO
 !@var JDLAST julian day that OCLIM was last called
@@ -290,7 +291,7 @@ C**** Ensure that lead fraction is consistent with kocean=1 case
               END IF
             END IF
 C**** accumulate diagnostics
-            IF(MSI(I,J).eq.0) MSI(I,J)=MSINEW
+            IF(MSI(I,J).eq.0) MSI(I,J)=MSINEW  ! does this happen?
             IF (end_of_day) THEN
               AIJ(I,J,IJ_SMFX)=AIJ(I,J,IJ_SMFX)+
      *           (SNOWI(I,J)+ACE1I)*(RSINEW-RSI(I,J))+
@@ -302,7 +303,8 @@ C**** accumulate diagnostics
               AJ(J,J_IMPLM,ITOCEAN)=AJ(J,J_IMPLM,ITOCEAN)-FOCEAN(I,J)
      *             *(RSINEW-RSI(I,J))*(MSINEW+ACE1I+SNOWI(I,J))
               AJ(J,J_IMPLH,ITOCEAN)=AJ(J,J_IMPLH,ITOCEAN)-FOCEAN(I,J)
-     *             *(RSINEW-RSI(I,J))*SUM(HSI(1:4,I,J))
+     *             *(RSINEW-RSI(I,J))*(SUM(HSI(1:2,I,J))+
+     *             SUM(HSI(3:4,I,J))*(MSINEW/MSI(I,J)))
             END IF
 C**** adjust enthalpy and salt so temperature/salinity remain constant
             HSI(3:4,I,J)=HSI(3:4,I,J)*(MSINEW/MSI(I,J))
@@ -416,11 +418,21 @@ C**** Calculate freshwater mass to be removed, and then any energy/salt
 #ifdef TRACERS_WATER
             TRSI(:,3:4,I,J) = TRSI(:,3:4,I,J)*(MSINEW/MSI(I,J))
 #endif
-            AIJ(I,J,IJ_SMFX)=AIJ(I,J,IJ_SMFX)+RSI(I,J)*(MSINEW-MSI(I,J))
-            AJ(J,J_IMPLM,ITOICE)=AJ(J,J_IMPLM,ITOICE)-FOCEAN(I,J)*RSI(I
-     *           ,J)*(MSINEW-MSI(I,J))
-            AJ(J,J_IMPLH,ITOICE)=AJ(J,J_IMPLH,ITOICE)-FOCEAN(I,J)*RSI(I
-     *           ,J)*SUM(HSI(3:4,I,J))*(MSINEW/MSI(I,J)-1.)
+            AJ(J,J_IMELT,ITOICE)=AJ(J,J_IMPLM,ITOICE)-FOCEAN(I,J)
+     *           *RSI(I,J)*(MSINEW-MSI(I,J))
+            AJ(J,J_HMELT,ITOICE)=AJ(J,J_IMPLH,ITOICE)-FOCEAN(I,J)
+     *           *RSI(I,J)*SUM(HSI(3:4,I,J))*(MSINEW/MSI(I,J)-1.)
+            AJ(J,J_SMELT,ITOICE)=AJ(J,J_IMPLH,ITOICE)-FOCEAN(I,J)
+     *           *RSI(I,J)*SUM(SSI(3:4,I,J))*(MSINEW/MSI(I,J)-1.)
+            AJ(J,J_IMPLM,ITOICE)=AJ(J,J_IMPLM,ITOICE)-FOCEAN(I,J)
+     *           *RSI(I,J)*(MSINEW-MSI(I,J))
+            AJ(J,J_IMPLH,ITOICE)=AJ(J,J_IMPLH,ITOICE)-FOCEAN(I,J)
+     *           *RSI(I,J)*SUM(HSI(3:4,I,J))*(MSINEW/MSI(I,J)-1.)
+            JR=JREG(I,J)
+            AREG(JR,J_IMPLM)=AREG(JR,J_IMPLM)-FOCEAN(I,J)*RSI(I,J)
+     *           *(MSINEW-MSI(I,J))*DXYP(J)
+            AREG(JR,J_IMPLH)=AREG(JR,J_IMPLH)-FOCEAN(I,J)*RSI(I,J)
+     *           *SUM(HSI(3:4,I,J))*(MSINEW/MSI(I,J)-1.)*DXYP(J)
             MSI(I,J)=MSINEW
             FWSIM(I,J)=RSI(I,J)*(ACE1I+SNOWI(I,J)+MSI(I,J)-SUM(SSI(1:LMI
      *           ,I,J)))
@@ -907,7 +919,8 @@ C****
      *     ,trsi
 #endif
       USE FLUXES, only : fwsim,msicnv,mlhc
-      USE DAGCOM, only : aj,areg,J_IMPLM,J_IMPLH,jreg,aij,IJ_SMFX
+      USE DAGCOM, only : aj,areg,J_IMPLM,J_IMPLH,jreg,aij,j_imelt
+     *     ,j_hmelt,j_smelt
       IMPLICIT NONE
       INTEGER I,J,JR
       REAL*8 DXYPJ,RUN4,ERUN4,TGW,POICE,POCEAN,Z1OMIN,MSINEW
@@ -942,12 +955,20 @@ C**** Calculate freshwater mass to be removed, and then any energy/salt
 #ifdef TRACERS_WATER
                 TRSI(:,3:4,I,J) = TRSI(:,3:4,I,J)*(MSINEW/MSI(I,J))
 #endif
-                AIJ(I,J,IJ_SMFX)=AIJ(I,J,IJ_SMFX)+RSI(I,J)*(MSINEW-MSI(I
-     *               ,J))
+                AJ(J,J_IMELT,ITOICE)=AJ(J,J_IMPLM,ITOICE)-FOCEAN(I,J)
+     *               *RSI(I,J)*(MSINEW-MSI(I,J))
+                AJ(J,J_HMELT,ITOICE)=AJ(J,J_IMPLH,ITOICE)-FOCEAN(I,J)
+     *               *RSI(I,J)*SUM(HSI(3:4,I,J))*(MSINEW/MSI(I,J)-1.)
+                AJ(J,J_SMELT,ITOICE)=AJ(J,J_IMPLH,ITOICE)-FOCEAN(I,J)
+     *               *RSI(I,J)*SUM(SSI(3:4,I,J))*(MSINEW/MSI(I,J)-1.)
                 AJ(J,J_IMPLM,ITOICE)=AJ(J,J_IMPLM,ITOICE)-FOCEAN(I,J)
      *               *RSI(I,J)*(MSINEW-MSI(I,J))
                 AJ(J,J_IMPLH,ITOICE)=AJ(J,J_IMPLH,ITOICE)-FOCEAN(I,J)
      *               *RSI(I,J)*SUM(HSI(3:4,I,J))*(MSINEW/MSI(I,J)-1.)
+                AREG(JR,J_IMPLM)=AREG(JR,J_IMPLM)-FOCEAN(I,J)*RSI(I,J)
+     *               *(MSINEW-MSI(I,J))*DXYPJ
+                AREG(JR,J_IMPLH)=AREG(JR,J_IMPLH)-FOCEAN(I,J)*RSI(I,J)
+     *               *SUM(HSI(3:4,I,J))*(MSINEW/MSI(I,J)-1.)*DXYPJ
                 MSI(I,J)=MSINEW
                 FWSIM(I,J)=RSI(I,J)*(ACE1I+SNOWI(I,J)+MSI(I,J)
      *               -SUM(SSI(1:LMI,I,J)))

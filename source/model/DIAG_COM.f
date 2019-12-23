@@ -157,7 +157,7 @@ C****   10 - 1: mid strat               1 and up : upp strat.
      &     DIMENSION(RE_AND_IM,Max12HR_sequ,NWAV_DAG,KWP) :: WAVE
 
 C**** parameters and variables for ISCCP diags
-!@param ntau, npress number of ISCCP optical depth and pressure categories 
+!@param ntau,npress number of ISCCP optical depth,pressure categories
       integer, parameter :: ntau=7,npres=7
 !@param nisccp number of ISCCP histogram regions
       integer, parameter :: nisccp = 6
@@ -242,6 +242,8 @@ C****   9  MIN COMPOSITE TS FOR CURRENT DAY (K)
       INTEGER :: IWRITE = 0, JWRITE = 0, ITWRITE = 0
 !@nlparam QDIAG TRUE for outputting binary diagnostics
       LOGICAL :: QDIAG = .FALSE.
+!@nlparam QDIAG_ratios TRUE for forming ratios if title="q1 x q2"
+      LOGICAL :: QDIAG_ratios = .TRUE.
 
 !@var OA generic diagnostic array for ocean heat transport calculations
 C****
@@ -563,7 +565,7 @@ c idacc-indices of various processes
       REAL*8 :: XWON = TWOPI/(DLON*FIM)
 
 !@var LMOMAX max no. of layers in any ocean
-      INTEGER, PARAMETER :: LMOMAX=50  
+      INTEGER, PARAMETER :: LMOMAX=50
 !@var ZOC, ZOC1 ocean depths for diagnostics (m) (ONLY FOR DEEP OCEAN)
       REAL*8 :: ZOC(LMOMAX) = 0. , ZOC1(LMOMAX+1) = 0.
 

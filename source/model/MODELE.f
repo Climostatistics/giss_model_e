@@ -562,8 +562,8 @@ C****
 #if (defined TRACERS_ON) || (defined TRACERS_OCEAN)
       USE TRACER_COM,only: MTRACE,NTM,TRNAME
 #endif
-      USE DAGCOM, only : acc_period,monacc,kacc,kdiag,jreg
-     &  ,titreg,namreg,hr_in_day,iwrite,jwrite,itwrite,qdiag,oa
+      USE DAGCOM, only : acc_period,monacc,kacc,jreg,titreg,namreg
+     &  ,hr_in_day,iwrite,jwrite,itwrite,kdiag,qdiag,qdiag_ratios,oa
       USE PBLCOM
      &     , only : wsavg,tsavg,qsavg,dclev,usavg,vsavg,tauavg,ustar_pbl
      &  ,egcm,w2gcm,tgvavg,qgavg
@@ -595,7 +595,7 @@ C****
 
       CHARACTER NLREC*80,filenm*100,RLABEL*132
       NAMELIST/INPUTZ/ ISTART,IRANDI
-     *     ,IWRITE,JWRITE,ITWRITE,QCHECK,QDIAG,KDIAG
+     *     ,IWRITE,JWRITE,ITWRITE,QCHECK,QDIAG,KDIAG,QDIAG_RATIOS
      *     ,IHOURE, HOURE,DATEE,MONTHE,YEARE,IYEAR1
 C****    List of parameters that are disregarded at restarts
      *     ,        HOURI,DATEI,MONTHI,YEARI

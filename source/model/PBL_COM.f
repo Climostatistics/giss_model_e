@@ -77,8 +77,8 @@
 #ifdef TRACERS_ON
 !@var TR_HEADER Character string label for tracer record
       CHARACTER*80 :: TR_HEADER, TR_MODULE_HEADER = "TRPBL01"
-      write (TR_MODULE_HEADER(lhead+1:80),'(a7,i2,i3,a)') 'R8 dim(',npbl
-     *     ,ntm,',ijm,4):TRt'
+      write (TR_MODULE_HEADER(lhead+1:80),'(a7,i2,a,i2,a)') 'R8 dim(',
+     *     npbl,',',ntm,',ijm,4):TRt'
 #endif
       write (MODULE_HEADER(lhead+1:80),'(a7,i2,a)') 'R8 dim(',npbl,
      *  ',ijm,4):Ut,Vt,Tt,Qt,Et dim(ijm,4,3):Cmhq, I:Ipb(ijm,4)'

@@ -376,7 +376,7 @@ C****
      *     ,ftrsi_io,trevapor,trunosi,gtracer
 #endif
       USE SEAICE, only : sea_ice,ssidec,lmi,xsi,ace1i,qsfix,debug
-     *     ,snowice, snow_ice
+     *     ,snowice, snow_ice, rhos
       USE SEAICE_COM, only : rsi,msi,snowi,hsi,ssi,pond_melt,flag_dsws
 #ifdef TRACERS_WATER
      *     ,trsi,ntm
@@ -508,7 +508,8 @@ C**** Net fluxes to ocean
 
 C**** ACCUMULATE DIAGNOSTICS
           SCOVI=0.
-          IF (SNOWI(I,J).GT.0) SCOVI=POICE
+C**** snow cover diagnostic now matches that seen by the radiation
+          IF (SNOW.GT.0) SCOVI=MIN(1d0,SNOW/(RHOS*0.1d0))*POICE
 
           AIJ(I,J,IJ_RSNW)=AIJ(I,J,IJ_RSNW)+SCOVI
           AIJ(I,J,IJ_SNOW)=AIJ(I,J,IJ_SNOW)+SNOW*POICE
@@ -767,7 +768,7 @@ C****
 #ifdef TRACERS_WATER
      *     ,trsi,ntm
 #endif
-      USE FLUXES, only : gtemp,sss,ui2rho,fwsim,msicnv
+      USE FLUXES, only : gtemp,ui2rho,fwsim,msicnv
 #ifdef TRACERS_WATER
      *     ,gtracer
 #endif
@@ -810,13 +811,13 @@ C****   set defaults for no ice case
             IF (FOCEAN(I,J).gt.0) THEN
               SSI(1:2,I,J)=SSI0*XSI(1:2)*ACE1I
               SSI(3:4,I,J)=SSI0*XSI(3:4)*AC2OIM
-              TFO = TFREZ(SSS(I,J))
+              TFO = -1.87d0  ! reasonable value, doesn't really matter
             ELSE
               SSI(:,I,J)  = 0.
               TFO = 0.
             END IF
-            HSI(1:2,I,J)=(SHI*TFO-LHM*(1.-SSI0))*XSI(1:2)*ACE1I
-            HSI(3:4,I,J)=(SHI*TFO-LHM*(1.-SSI0))*XSI(3:4)*AC2OIM
+            HSI(1:2,I,J)=(SHI*TFO-LHM)*XSI(1:2)*ACE1I+LHM*SSI(1:2,I,J)
+            HSI(3:4,I,J)=(SHI*TFO-LHM)*XSI(3:4)*AC2OIM+LHM*SSI(3:4,I,J)
 #ifdef TRACERS_WATER
             TRSI(:,:,I,J)=0.
 #endif
@@ -905,8 +906,7 @@ C****
       DO J=1,JM
         EICE(J)=0
         DO I=1,IMAXJ(J)
-          EICE(J)=EICE(J)+RSI(I,J)*FOCEAN(I,J)*
-     *         (HSI(1,I,J)+HSI(2,I,J)+HSI(3,I,J)+HSI(4,I,J))
+          EICE(J)=EICE(J)+RSI(I,J)*FOCEAN(I,J)*SUM(HSI(:,I,J))
         END DO
       END DO
       EICE(1) =FIM*EICE(1)
@@ -931,9 +931,7 @@ C****
         SALT(J)=0
         DO I=1,IMAXJ(J)
           IF (FOCEAN(I,J).gt.0) THEN
-            DO L=1,LMI
-              SALT(J)=SALT(J)+FOCEAN(I,J)*RSI(I,J)*SSI(L,I,J)
-            END DO
+            SALT(J)=SALT(J)+FOCEAN(I,J)*RSI(I,J)*SUM(SSI(:,I,J))
           END IF
         END DO
       END DO
@@ -986,8 +984,7 @@ C****
       DO J=1,JM
         EICE(J)=0
         DO I=1,IMAXJ(J)
-          EICE(J)=EICE(J)+RSI(I,J)*FLAKE(I,J)*
-     *         (HSI(1,I,J)+HSI(2,I,J)+HSI(3,I,J)+HSI(4,I,J))
+          EICE(J)=EICE(J)+RSI(I,J)*FLAKE(I,J)*SUM(HSI(:,I,J))
         END DO
       END DO
       EICE(1) =FIM*EICE(1)

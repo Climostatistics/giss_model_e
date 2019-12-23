@@ -686,6 +686,7 @@ ccc   local variables
       real*8, parameter :: hw = -100.d0
 !@var betadl transpiration efficiency for each soil layer
       real*8 betadl(ngm) ! used in evaps_limits only
+      real*8 pot_evap_can
 
 c     cna is the conductance of the atmosphere
       cna=ch*vsm
@@ -756,8 +757,17 @@ c     canopy conductivity cnc
         abetat=betat            ! return to old diagnostics
         acna=cna                ! return to old diagnostics
         acnc=cnc                ! return to old diagnostics
-        evap_max_dry(ibv) = min( evap_max(ibv),
-     &       betat*rho3*cna*( qsat(tp(0,2)+tfrz,lhe,pres) - qs ) )
+        pot_evap_can = betat*rho3*cna*(qsat(tp(0,2)+tfrz,lhe,pres) - qs)
+        evap_max_dry(ibv) = 0.d0
+        if ( betad > 0.d0 ) then
+          do l=1,n
+            evap_max_dry(ibv) = evap_max_dry(ibv)
+     &           +  min( pot_evap_can*betadl(l)/betad,
+     &         (w(l,ibv)-dz(l)*thetm(l,ibv))/dt )
+          enddo
+        endif
+!        evap_max_dry(ibv) = min( evap_max(ibv),
+!     &       betat*rho3*cna*( qsat(tp(0,2)+tfrz,lhe,pres) - qs ) )
                    ! may be pr should be included somehow in e_m_d
       endif
 
@@ -1743,7 +1753,7 @@ ccc accm0 was not called here in older version - check
         call drip_from_canopy
         call check_water(0)
         call check_energy(0)
-        call snow_drv
+        call snow
         call fl
         call flg
          ! call check_f11
@@ -2188,6 +2198,57 @@ c     write(6,*) 'denom',denom
       return
       end subroutine wtab
 
+
+      subroutine snow
+      use snow_drvm, only: snow_drv
+      implicit none
+      real*8 fmask(2), evapsn(2), devapsn_dt(2), canht
+      integer ibv
+
+      fmask(1) = 1.d0
+      fmask(2) = fm
+
+      evapsn(1) = evapbs
+      evapsn(2) = evapvs
+      devapsn_dt(1) = devapbs_dt
+      devapsn_dt(2) = devapvs_dt
+
+      canht = stbo*(tp(0,2)+tfrz)**4
+
+ccc reset some fluxes for ibv hack
+      flmlt_scale(:) = 0.d0
+      fhsng_scale(:) = 0.d0
+      flmlt(:) = 0.d0
+      fhsng(:) = 0.d0
+      thrmsn(:) = 0.d0
+      flux_snow(:,:) = 0.d0
+
+ccc remember initial snow water for tracers
+      wsn_for_tr(:,1) = wsn(:,1)*fr_snow(1)
+      wsn_for_tr(:,2) = wsn(:,2)*fr_snow(2)
+
+      do ibv=i_bare,i_vege
+        call snow_drv(
+ccc input
+     &       fmask(ibv), evapsn(ibv), snshs(ibv), srht, trht, canht,
+     &       drips(ibv), dripw(ibv), htdrips(ibv), htdripw(ibv),
+     &       devapsn_dt(ibv), dsnsh_dt, dts,
+     &       tp(1,ibv), dz(1), nlsn,
+ccc updated
+     &       dzsn(1,ibv), wsn(1,ibv), hsn(1,ibv), nsn(ibv),
+     &       fr_snow(ibv),
+ccc output
+     &       flmlt(ibv), fhsng(ibv), flmlt_scale(ibv),
+     &       fhsng_scale(ibv), thrmsn(ibv), flux_snow(0,ibv)
+     &       )
+      enddo
+
+      evapbs = evapsn(1)
+      evapvs = evapsn(2)
+
+      end subroutine snow
+
+#ifdef REMOVING_THIS_CODE
 c***********************************************************************
       subroutine snow_drv
 c
@@ -2367,6 +2428,7 @@ ccc update fluxes that could have changed by snow model
 
       return
       end subroutine snow_drv
+#endif
 
       subroutine set_snow
 !@sum set_snow extracts snow from the first soil layer and initializes
@@ -2600,7 +2662,7 @@ cddd      print *, 'tr_wsn 2 ', tr_wsn(1,:,2)
 ccc set internal vars
       do ibv=1,2
         wi(0:n,ibv) = w(0:n,ibv)
-        wsni(1:nlsn,ibv) = wsn_for_tr(1:nlsn,ibv)*fr_snow(ibv)
+        wsni(1:nlsn,ibv) = wsn_for_tr(1:nlsn,ibv) ! *fr_snow(ibv)
         flux_snow_tot(0:nlsn,ibv) = flux_snow(0:nlsn,ibv)*fr_snow(ibv)
       enddo
 

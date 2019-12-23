@@ -26,7 +26,7 @@ SEAICE SEAICE_DRV                   ! seaice modules
 LANDICE LANDICE_DRV                 ! land ice modules
 ICEDYN_DRV ICEDYN  ! or: ICEDYN_DUM ! land ice modules
 OCEAN OCNML                         ! ocean modules
-SNOW                                ! snow model
+SNOW_DRV SNOW                       ! snow model
 RAD_COM RAD_DRV RADIATION           ! radiation modules
 DIAG_COM DIAG DEFACC DIAG_PRT       ! diagnostics
 CONST FFT72 UTILDBL SYSTEM          ! utilities
@@ -35,7 +35,7 @@ POUT                                ! post-processing output
 Data input files:
     ! the first 4 files are specific to prescribed ocean runs
 AIC=AIC.RES_M12.D771201           ! initial conditions (atm.)
-GIC=GIC.rsfB357M12.1DEC1956.1     ! initial conditions (ground)
+GIC=GIC.rsfB357M12.1DEC1956.1.ext ! initial conditions (ground)
 ! OSST=OST4X5.B.1975-84avg.Hadl1.1  ! prescr. climatological ocean (1 yr of data)
 ! SICE=SICE4X5.B.1975-84avg.Hadl1.1 ! prescr. climatological sea ice
     ! if the prescr. ocean varies from year to year use instead:

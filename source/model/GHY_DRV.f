@@ -103,10 +103,10 @@ c****
 !#ifdef TRACERS_WATER
 !     *     ,trvege,trbare,trsnowbv
 !#endif
-      USE SOCPBL, only : zgs,dtsurf              ! global
+      USE SOCPBL, only : dtsurf         ! zgs,     ! global
      &     ,zs1,tgv,tkv,qg_sat,hemi,pole     ! rest local
      &     ,us,vs,ws,wsm,wsh,tsv,qsrf,psi,dbl    ! ,edvisc=>kms
-     &     ,khs,ppbl,ug,vg,wg,zmix   ! ,kq=>kqs
+     &     ,khs,ug,vg,wg,zmix   ! ,kq=>kqs ,ppbl
       use pblcom, only : ipbl,cmgs,chgs,cqgs,tsavg,qsavg
       use pbl_drv, only : pbl, evap_max,fr_sat,uocean,vocean
 #ifdef TRACERS_ON
@@ -119,7 +119,7 @@ c****
 
       integer, intent(in) :: ns,moddsf,moddd
       integer i,j,l,kr,jr,itype,ih,ibv
-      real*8 shdt,qsats,evap,evhdt,tg2av,ace2av,trhdt,rcdmws,rcdhws,dhgs
+      real*8 shdt,qsats,evap,evhdt,tg2av,ace2av,trhdt,rcdmws,rcdhws !,dhgs
      *     ,cdq,cdm,cdh,elhx,tg,srheat,tg1,ptype,trheat,wtr2av
      *     ,wfc1,rhosrf,ma1,tfs,th1,thv1,p1k,psk,ps,pij,psoil,pearth
      *     ,warmer,brun0,berun0,bts,bevhdt,brunu,berunu
