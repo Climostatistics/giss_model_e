@@ -4,13 +4,13 @@ sudo: required
 before_install:
   - sudo apt-get install python python-numpy python-pip
 #  - sudo apt-get install gcc.x86_64
-  - sudo apt-get install gcc-gfortran.x86_64
+  - sudo apt-get install gfortran
 #  - sudo apt-get install gcc-c++.x86_64
-  - sudo apt-get install git
-  - sudo apt-get install netcdf.x86_64
-  - sudo apt-get install netcdf-fortran.x86_64
-  - sudo apt-get install netcdf-devel.x86_64
-  - sudo apt-get install netcdf-fortran-devel.x86_64
-  - sudo apt-get install openmpi.x86_64
-  - sudo apt-get install openmpi-devel.x86_64
+#  - sudo apt-get install git
+  - sudo apt-get install netcdf
+  - sudo apt-get install netcdf-fortran
+  - sudo apt-get install netcdf-devel
+  - sudo apt-get install netcdf-fortran-devel
+  - sudo apt-get install openmpi
+  - sudo apt-get install openmpi-devel
 script: pip install numpy
