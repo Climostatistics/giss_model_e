@@ -3,9 +3,9 @@ dist: xenial
 sudo: required
 before_install:
   - sudo apt-get install python python-numpy python-pip
-  - sudo apt-get install gcc.x86_64
+#  - sudo apt-get install gcc.x86_64
   - sudo apt-get install gcc-gfortran.x86_64
-  - sudo apt-get install gcc-c++.x86_64
+#  - sudo apt-get install gcc-c++.x86_64
   - sudo apt-get install git
   - sudo apt-get install netcdf.x86_64
   - sudo apt-get install netcdf-fortran.x86_64
