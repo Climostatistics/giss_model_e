@@ -3,16 +3,7 @@ dist: xenial
 sudo: required
 before_install:
   - sudo apt-get install python python-numpy python-pip
-#  - sudo apt-get install gcc.x86_64
   - sudo apt-get install gfortran
-#  - sudo apt-get install gcc-c++.x86_64
-#  - sudo apt-ge  - t install git
-#  - sudo apt-get install netcdf
-#  - sudo apt-get install netcdf-fortran
-#  - sudo apt-get install netcdf-devel
-#  - sudo apt-get install netcdf-fortran-devel
   - sudo apt-get install libnetcdf-dev libnetcdff-dev
-#  - sudo apt-get install openmpi openmpi-dev
-#  - sudo apt-get install openmpi-devel
-   - sudo apt-get install --reinstall openmpi-bin libopenmpi-dev
+  - sudo apt-get install --reinstall openmpi-bin libopenmpi-dev
 script: pip install numpy
