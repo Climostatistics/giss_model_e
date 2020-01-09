@@ -6,4 +6,6 @@ before_install:
   - sudo apt-get install gfortran
   - sudo apt-get install libnetcdf-dev libnetcdff-dev
   - sudo apt-get install --reinstall openmpi-bin libopenmpi-dev
-script: pip install numpy
+script: 
+  - cd modelE/decks
+  - make config COMPILER=gfortran ModelE_Support=$HOME/ModelE_Support
