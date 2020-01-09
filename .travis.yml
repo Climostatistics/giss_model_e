@@ -7,5 +7,5 @@ before_install:
   - sudo apt-get install libnetcdf-dev libnetcdff-dev
   - sudo apt-get install --reinstall openmpi-bin libopenmpi-dev
 script: 
-  - cd modelE/decks
+  - cd source/decks
   - make config COMPILER=gfortran ModelE_Support=$HOME/ModelE_Support
