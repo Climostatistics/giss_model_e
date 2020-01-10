@@ -9,4 +9,4 @@ before_install:
 script: 
   - cd source/decks
   - make config COMPILER=gfortran ModelE_Support=$HOME/ModelE_Support
-  - make
+  - gmake exe
